@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>DeepGlass</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(to bottom, #0f172a, #1e293b);
+      min-height: 100vh;
+      color: white;
+      overflow-x: hidden;
+    }
+    
+    .screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+      text-align: center;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    .screen.active {
+      display: flex;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 0 30px rgba(45, 212, 191, 0.3); }
+      50% { box-shadow: 0 0 60px rgba(45, 212, 191, 0.6); }
+    }
+    
+    .logo {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #2dd4bf, #3b82f6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 32px;
+    }
+    
+    .logo svg {
+      width: 32px;
+      height: 32px;
+      color: white;
+    }
+    
+    h1 {
+      font-size: 32px;
+      font-weight: 300;
+      margin-bottom: 16px;
+    }
+    
+    h2 {
+      font-size: 24px;
+      font-weight: 300;
+      margin-bottom: 24px;
+    }
+    
+    p {
+      color: #94a3b8;
+      font-size: 18px;
+      line-height: 1.6;
+      margin-bottom: 16px;
+      max-width: 320px;
+    }
+    
+    p.highlight {
+      color: #2dd4bf;
+    }
+    
+    p.white {
+      color: white;
+    }
+    
+    p.small {
+      font-size: 14px;
+      color: #64748b;
+    }
+    
+    .btn {
+      background: #14b8a6;
+      color: white;
+      border: none;
+      padding: 16px 48px;
+      border-radius: 50px;
+      font-size: 18px;
+      font-weight: 500;
+      cursor: pointer;
+      margin-top: 32px;
+      transition: all 0.3s ease;
+    }
+    
+    .btn:hover, .btn:active {
+      background: #0d9488;
+      transform: scale(1.02);
+    }
+    
+    .btn.red {
+      background: #ef4444;
+    }
+    
+    .btn.red:hover, .btn.red:active {
+      background: #dc2626;
+    }
+    
+    .btn.gradient {
+      background: linear-gradient(135deg, #14b8a6, #3b82f6);
+      padding: 20px 64px;
+      font-size: 20px;
+      box-shadow: 0 10px 40px rgba(45, 212, 191, 0.3);
+    }
+    
+    .btn.text {
+      background: transparent;
+      color: #94a3b8;
+      padding: 8px 24px;
+      margin-top: 16px;
+    }
+    
+    .btn.text:hover {
+      color: white;
+      background: transparent;
+    }
+    
+    .badge {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #f87171;
+      padding: 8px 16px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 32px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .badge.teal {
+      background: rgba(45, 212, 191, 0.1);
+      border: 1px solid rgba(45, 212, 191, 0.3);
+      color: #2dd4bf;
+    }
+    
+    .input {
+      background: #1e293b;
+      border: 1px solid rgba(239, 68, 68, 0.5);
+      color: white;
+      padding: 16px 24px;
+      border-radius: 12px;
+      font-size: 20px;
+      text-align: center;
+      width: 280px;
+      margin-bottom: 16px;
+      outline: none;
+    }
+    
+    .input:focus {
+      border-color: #f87171;
+    }
+    
+    .input.teal {
+      border-color: rgba(45, 212, 191, 0.5);
+    }
+    
+    .input.teal:focus {
+      border-color: #2dd4bf;
+    }
+    
+    .card {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 320px;
+      margin: 24px 0;
+    }
+    
+    .card.teal {
+      background: rgba(45, 212, 191, 0.1);
+      border: 1px solid rgba(45, 212, 191, 0.3);
+    }
+    
+    .card h3 {
+      color: #fca5a5;
+      font-size: 18px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    
+    .card.teal h3 {
+      color: #5eead4;
+    }
+    
+    .card p {
+      margin-bottom: 0;
+    }
+    
+    .checkmark {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background: rgba(239, 68, 68, 0.2);
+      border: 2px solid #ef4444;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 32px;
+    }
+    
+    .checkmark svg {
+      width: 48px;
+      height: 48px;
+      color: #ef4444;
+    }
+    
+    .checkmark.teal {
+      background: linear-gradient(135deg, #2dd4bf, #3b82f6);
+      border: none;
+      animation: glow 2s ease infinite;
+    }
+    
+    .checkmark.teal svg {
+      color: white;
+    }
+    
+    .rings {
+      width: 96px;
+      height: 96px;
+      position: relative;
+      margin-bottom: 32px;
+    }
+    
+    .rings .ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 2px solid #2dd4bf;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .rings .ring.outer {
+      width: 96px;
+      height: 96px;
+      top: 0;
+      left: 0;
+    }
+    
+    .rings .ring.middle {
+      width: 64px;
+      height: 64px;
+      top: 16px;
+      left: 16px;
+    }
+    
+    .rings .ring.inner {
+      width: 32px;
+      height: 32px;
+      top: 32px;
+      left: 32px;
+      background: #2dd4bf;
+      border: none;
+    }
+    
+    .rings.pulse .ring {
+      animation: pulse 1.5s ease infinite;
+    }
+    
+    .comparison {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 320px;
+      margin: 24px 0;
+    }
+    
+    .comparison .card {
+      text-align: left;
+      margin: 0;
+    }
+    
+    .comparison .card .label {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .comparison .card.red .label {
+      color: #f87171;
+    }
+    
+    .comparison .card.teal .label {
+      color: #2dd4bf;
+    }
+    
+    .divider {
+      width: 100%;
+      max-width: 320px;
+      height: 1px;
+      background: #334155;
+      margin: 32px 0;
+    }
+    
+    .tagline {
+      font-size: 20px;
+      color: #2dd4bf;
+      margin-bottom: 32px;
+    }
+    
+    .screen.red-bg {
+      background: linear-gradient(to bottom, #450a0a, #1e293b);
+    }
+    
+    .recognition-box {
+      background: rgba(45, 212, 191, 0.1);
+      border: 1px solid rgba(45, 212, 191, 0.3);
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 320px;
+      margin: 24px 0;
+    }
+    
+    .recognition-box .legal-name {
+      font-size: 22px;
+      color: white;
+      margin-bottom: 16px;
+    }
+    
+    .recognition-box .legal-name span {
+      color: #2dd4bf;
+    }
+    
+    .recognition-box .aka {
+      color: #94a3b8;
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+    
+    .recognition-box .aka span {
+      color: #5eead4;
+    }
+    
+    .final-message {
+      max-width: 320px;
+    }
+    
+    .final-message p {
+      margin-bottom: 12px;
+    }
+    
+    .signature {
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid #334155;
+      text-align: center;
+    }
+    
+    .signature .company {
+      color: white;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    
+    .signature .tagline-small {
+      color: #64748b;
+      font-size: 14px;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Screen 0: Welcome -->
+<div class="screen active" id="screen0">
+  <div class="logo">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  </div>
+  <h1>DeepGlass</h1>
+  <p>A simpler way to prove you're you.</p>
+  <button class="btn" onclick="goTo(1)">Get Started</button>
+</div>
+
+<!-- Screen 1: The Problem Intro -->
+<div class="screen" id="screen1">
+  <h2>First, let's show you a problem.</h2>
+  <p>In today's world, anyone can claim to be anyone.</p>
+  <p>A scammer can say they're your bank.</p>
+  <p>A stranger can say they're your grandson.</p>
+  <p>A thief can say they're you.</p>
+  <button class="btn" onclick="goTo(2)">Show Me</button>
+</div>
+
+<!-- Screen 2: The Lie Setup -->
+<div class="screen red-bg" id="screen2">
+  <div class="badge">Practice Round</div>
+  <h2>Try it yourself.</h2>
+  <p>Type any name. Pretend to be anyone. This is how most systems work today.</p>
+  <input type="text" class="input" id="fakeName" placeholder="Type any name...">
+  <p class="small">Go ahead. Lie. Say you're the Queen of England.</p>
+  <button class="btn red" onclick="submitLie()">"Verify" Identity</button>
+</div>
+
+<!-- Screen 3: Lie Accepted -->
+<div class="screen red-bg" id="screen3">
+  <div class="checkmark">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+    </svg>
+  </div>
+  <h2>Welcome, <span id="fakeNameDisplay"></span>.</h2>
+  <p style="color: #f87171;">Identity "verified."</p>
+  <div class="card">
+    <h3>The first lie is free.</h3>
+    <p>The system believed you. No questions asked. This is how identity theft starts.</p>
+  </div>
+  <button class="btn" onclick="goTo(4)">Continue</button>
+</div>
+
+<!-- Screen 4: The Inversion -->
+<div class="screen" id="screen4">
+  <h2>Now let's try again.</h2>
+  <p>This time, with DeepGlass.</p>
+  <p>This time, the system doesn't just believe you.</p>
+  <p class="highlight">This time, it knows.</p>
+  <button class="btn" onclick="goTo(5)">Try Again With DeepGlass</button>
+</div>
+
+<!-- Screen 5: Real Entry -->
+<div class="screen" id="screen5">
+  <div class="badge teal">This Time It Counts</div>
+  <h2>What's your name?</h2>
+  <p>Type whatever you usually go by.</p>
+  <input type="text" class="input teal" id="typedName" placeholder="Your name">
+  <button class="btn" onclick="submitReal()">Continue</button>
+</div>
+
+<!-- Screen 6: Recognition Loading -->
+<div class="screen" id="screen6">
+  <div class="rings pulse">
+    <div class="ring outer"></div>
+    <div class="ring middle"></div>
+    <div class="ring inner"></div>
+  </div>
+  <h2>Checking...</h2>
+  <p>DeepGlass is verifying your identity.</p>
+</div>
+
+<!-- Screen 7: The Recognition Moment -->
+<div class="screen" id="screen7">
+  <div class="logo">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  </div>
+  <h2>Just to confirm...</h2>
+  <div class="recognition-box">
+    <p class="legal-name">Are you <span>Margaret Fink Hall</span>?</p>
+    <p class="aka">Or do you go by <span>Margi</span> sometimes?</p>
+  </div>
+  <p class="small">You typed "<span id="typedNameDisplay"></span>" — but DeepGlass knows who you really are.</p>
+  <button class="btn" onclick="goTo(8)">Yes, that's me</button>
+</div>
+
+<!-- Screen 8: Declaration -->
+<div class="screen" id="screen8">
+  <div class="rings">
+    <div class="ring outer"></div>
+    <div class="ring middle"></div>
+    <div class="ring inner"></div>
+  </div>
+  <h2>Margi,</h2>
+  <p class="white" style="font-size: 20px;">are you ready to declare yourself?</p>
+  <button class="btn gradient" onclick="verify()">I am me</button>
+</div>
+
+<!-- Screen 9: Verifying -->
+<div class="screen" id="screen9">
+  <div class="rings pulse">
+    <div class="ring outer"></div>
+    <div class="ring middle"></div>
+    <div class="ring inner"></div>
+  </div>
+  <h2 style="color: #2dd4bf;">Verifying...</h2>
+  <p>Confirming Margaret Fink Hall.</p>
+</div>
+
+<!-- Screen 10: Verified -->
+<div class="screen" id="screen10">
+  <div class="checkmark teal">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+    </svg>
+  </div>
+  <h1>I am me</h1>
+  <p class="tagline">and it agrees.</p>
+  <p>Hello, Margi.</p>
+  <p>Not because you said so. Because it's true.</p>
+  <button class="btn text" onclick="goTo(11)">Continue →</button>
+</div>
+
+<!-- Screen 11: The Comparison -->
+<div class="screen" id="screen11">
+  <h2>See the difference?</h2>
+  <div class="comparison">
+    <div class="card red">
+      <p class="label">THE OLD WAY</p>
+      <p>You typed "<span id="fakeNameCompare"></span>" and the system believed you. No questions. The first lie was free.</p>
+    </div>
+    <div class="card teal">
+      <p class="label">WITH DEEPGLASS</p>
+      <p>You typed "<span id="typedNameCompare"></span>" — but the system already knew you're <span style="color: #2dd4bf;">Margaret Fink Hall</span>. It didn't believe you. It recognized you.</p>
+    </div>
+  </div>
+  <button class="btn" onclick="goTo(12)">Continue</button>
+</div>
+
+<!-- Screen 12: What This Means -->
+<div class="screen" id="screen12">
+  <h2>What this means for you:</h2>
+  <p>No more passwords to remember.</p>
+  <p>No more security questions someone could guess.</p>
+  <p>No more feeling like a suspect just to access your own accounts.</p>
+  <p>No more scammers pretending to be you—because the system would know they're not.</p>
+  <p class="white" style="margin-top: 16px;">Just you. Known. Verified. Simple.</p>
+  <button class="btn text" onclick="goTo(13)">Continue →</button>
+</div>
+
+<!-- Screen 13: Final -->
+<div class="screen" id="screen13">
+  <div class="logo">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  </div>
+  <h2>That's DeepGlass.</h2>
+  <p class="tagline">I am me and it agrees.</p>
+  
+  <div class="divider"></div>
+  
+  <div class="final-message">
+    <p>This is what Craig is building.</p>
+    <p>Not a gamble. Not a get-rich-quick scheme.</p>
+    <p>A way to make the world a little less frustrating for people like you—people who are tired of proving they're themselves.</p>
+  </div>
+  
+  <div class="divider"></div>
+  
+  <p class="small">Cost so far: $300 in patent filings.</p>
+  <p class="small">Risk to retirement: Zero.</p>
+  
+  <div class="signature">
+    <p class="company">DeepGlass Genomics</p>
+    <p class="tagline-small">"I am me and it agrees"</p>
+  </div>
+  
+  <button class="btn text" onclick="reset()">Start over</button>
+</div>
+
+<script>
+  let fakeName = '';
+  let typedName = '';
+  
+  function goTo(screenNum) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen' + screenNum).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+  
+  function submitLie() {
+    fakeName = document.getElementById('fakeName').value.trim();
+    if (!fakeName) return;
+    document.getElementById('fakeNameDisplay').textContent = fakeName;
+    goTo(3);
+  }
+  
+  function submitReal() {
+    typedName = document.getElementById('typedName').value.trim();
+    if (!typedName) return;
+    goTo(6);
+    setTimeout(() => {
+      document.getElementById('typedNameDisplay').textContent = typedName;
+      goTo(7);
+    }, 2500);
+  }
+  
+  function verify() {
+    goTo(9);
+    setTimeout(() => {
+      document.getElementById('fakeNameCompare').textContent = fakeName;
+      document.getElementById('typedNameCompare').textContent = typedName;
+      goTo(10);
+    }, 2500);
+  }
+  
+  function reset() {
+    fakeName = '';
+    typedName = '';
+    document.getElementById('fakeName').value = '';
+    document.getElementById('typedName').value = '';
+    goTo(0);
+  }
+</script>
+
+</body>
+</html>
