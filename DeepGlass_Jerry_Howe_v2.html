@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>DeepGlass</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(to bottom, #0f172a, #1e293b);
+      min-height: 100vh;
+      color: white;
+      overflow-x: hidden;
+    }
+    
+    .screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+      text-align: center;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    .screen.active {
+      display: flex;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 0 30px rgba(45, 212, 191, 0.3); }
+      50% { box-shadow: 0 0 60px rgba(45, 212, 191, 0.6); }
+    }
+    
+    .logo {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #2dd4bf, #3b82f6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 32px;
+    }
+    
+    .logo svg {
+      width: 32px;
+      height: 32px;
+      fill: none;
+      stroke: white;
+      stroke-width: 2;
+    }
+    
+    h1 {
+      font-size: 32px;
+      font-weight: 300;
+      margin-bottom: 16px;
+    }
+    
+    h2 {
+      font-size: 24px;
+      font-weight: 300;
+      margin-bottom: 24px;
+    }
+    
+    p {
+      color: #94a3b8;
+      font-size: 18px;
+      line-height: 1.6;
+      margin-bottom: 16px;
+      max-width: 320px;
+    }
+    
+    p.highlight {
+      color: #2dd4bf;
+    }
+    
+    p.white {
+      color: white;
+    }
+    
+    p.small {
+      font-size: 14px;
+      color: #64748b;
+    }
+    
+    .btn {
+      background: linear-gradient(135deg, #2dd4bf, #14b8a6);
+      color: #0f172a;
+      border: none;
+      padding: 16px 32px;
+      border-radius: 50px;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 16px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .btn:active {
+      transform: scale(0.98);
+    }
+    
+    .btn.text {
+      background: transparent;
+      color: #2dd4bf;
+      text-decoration: underline;
+      padding: 12px 24px;
+    }
+    
+    .btn.small {
+      padding: 12px 24px;
+      font-size: 15px;
+    }
+    
+    .input {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 12px;
+      padding: 16px 20px;
+      font-size: 18px;
+      color: white;
+      width: 100%;
+      max-width: 300px;
+      margin: 16px 0;
+      text-align: center;
+    }
+    
+    .input::placeholder {
+      color: #64748b;
+    }
+    
+    .badge {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #f87171;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 24px;
+    }
+    
+    .badge.teal {
+      background: rgba(45, 212, 191, 0.2);
+      border: 1px solid rgba(45, 212, 191, 0.3);
+      color: #2dd4bf;
+    }
+    
+    .card {
+      background: rgba(30, 41, 59, 0.8);
+      border-radius: 16px;
+      padding: 20px;
+      max-width: 320px;
+      margin: 12px 0;
+    }
+    
+    .card.red {
+      background: rgba(127, 29, 29, 0.3);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    
+    .card.teal {
+      background: rgba(13, 148, 136, 0.2);
+      border: 1px solid rgba(45, 212, 191, 0.3);
+    }
+    
+    .card .label {
+      font-size: 12px;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    
+    .comparison {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin: 24px 0;
+    }
+    
+    .divider {
+      width: 60px;
+      height: 2px;
+      background: linear-gradient(90deg, #2dd4bf, #3b82f6);
+      margin: 32px auto;
+    }
+    
+    .tagline {
+      font-size: 20px;
+      color: #2dd4bf;
+      margin-bottom: 32px;
+    }
+    
+    .screen.red-bg {
+      background: linear-gradient(to bottom, #450a0a, #1e293b);
+    }
+    
+    .recognition-box {
+      background: rgba(45, 212, 191, 0.1);
+      border: 1px solid rgba(45, 212, 191, 0.3);
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 320px;
+      margin: 24px 0;
+    }
+    
+    .recognition-box .legal-name {
+      font-size: 22px;
+      color: white;
+      margin-bottom: 16px;
+    }
+    
+    .recognition-box .legal-name span {
+      color: #2dd4bf;
+    }
+    
+    .recognition-box .aka {
+      color: #94a3b8;
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+    
+    .recognition-box .aka span {
+      color: #5eead4;
+    }
+    
+    .recognition-box .special {
+      color: #64748b;
+      font-size: 14px;
+      font-style: italic;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(45, 212, 191, 0.2);
+    }
+    
+    .recognition-box .special span {
+      color: #fbbf24;
+    }
+    
+    .final-message {
+      max-width: 320px;
+    }
+    
+    .final-message p {
+      margin-bottom: 12px;
+    }
+    
+    .signature {
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid #334155;
+      text-align: center;
+    }
+    
+    .signature .company {
+      color: white;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    
+    .signature .tagline-small {
+      color: #64748b;
+      font-size: 14px;
+      font-style: italic;
+    }
+    
+    /* QR Demo Styles */
+    .qr-container {
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      margin: 20px 0;
+      position: relative;
+    }
+    
+    .qr-code {
+      width: 160px;
+      height: 160px;
+      background: linear-gradient(45deg, #1a1a2e 25%, transparent 25%),
+                  linear-gradient(-45deg, #1a1a2e 25%, transparent 25%),
+                  linear-gradient(45deg, transparent 75%, #1a1a2e 75%),
+                  linear-gradient(-45deg, transparent 75%, #1a1a2e 75%);
+      background-size: 16px 16px;
+      background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+      border-radius: 8px;
+      position: relative;
+    }
+    
+    .qr-center-logo {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #2dd4bf, #3b82f6);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .qr-center-logo svg {
+      width: 24px;
+      height: 24px;
+      fill: white;
+    }
+    
+    .countdown-ring {
+      position: absolute;
+      top: -10px;
+      left: -10px;
+      right: -10px;
+      bottom: -10px;
+    }
+    
+    .countdown-ring svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+    
+    .countdown-ring circle {
+      fill: none;
+      stroke-width: 4;
+    }
+    
+    .countdown-ring .bg {
+      stroke: #e2e8f0;
+    }
+    
+    .countdown-ring .progress {
+      stroke: url(#qr-gradient);
+      stroke-linecap: round;
+      stroke-dasharray: 565;
+      stroke-dashoffset: 0;
+      transition: stroke-dashoffset 1s linear;
+    }
+    
+    .countdown-text {
+      font-size: 36px;
+      font-weight: 700;
+      color: #2dd4bf;
+      margin: 16px 0 4px;
+    }
+    
+    .countdown-label {
+      font-size: 12px;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+    
+    .session-info {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 16px;
+      margin: 16px 0;
+      max-width: 280px;
+    }
+    
+    .session-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #334155;
+    }
+    
+    .session-row:last-child {
+      border-bottom: none;
+    }
+    
+    .session-label {
+      color: #64748b;
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+    
+    .session-value {
+      color: #e2e8f0;
+      font-size: 14px;
+      font-family: monospace;
+    }
+    
+    .session-nonce {
+      color: #2dd4bf;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 3px;
+    }
+    
+    .entropy-bar {
+      display: flex;
+      gap: 2px;
+      justify-content: center;
+      margin: 12px 0;
+    }
+    
+    .entropy-segment {
+      width: 6px;
+      height: 20px;
+      background: #334155;
+      border-radius: 2px;
+      transition: background 0.2s;
+    }
+    
+    .entropy-segment.active {
+      background: #2dd4bf;
+    }
+    
+    /* Frictionless Day Styles */
+    .day-timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin: 20px 0;
+      max-width: 300px;
+    }
+    
+    .day-event {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(30, 41, 59, 0.6);
+      padding: 12px 16px;
+      border-radius: 12px;
+      border-left: 3px solid #64748b;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .day-event:hover {
+      background: rgba(45, 212, 191, 0.1);
+    }
+    
+    .day-event.verified {
+      border-left-color: #22c55e;
+      background: rgba(34, 197, 94, 0.1);
+    }
+    
+    .day-event.verified .context-result {
+      color: #22c55e !important;
+    }
+    
+    .day-event .time {
+      font-size: 12px;
+      color: #64748b;
+      min-width: 60px;
+    }
+    
+    .day-event .icon {
+      font-size: 20px;
+    }
+    
+    .day-event .context {
+      flex: 1;
+      text-align: left;
+    }
+    
+    .day-event .context-title {
+      color: white;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .day-event .context-result {
+      color: #22c55e;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .stats-row {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      margin: 24px 0;
+    }
+    
+    .stat {
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 36px;
+      font-weight: 700;
+      color: #2dd4bf;
+    }
+    
+    .stat-label {
+      font-size: 11px;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    /* Name selection styles */
+    .name-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(30, 41, 59, 0.6);
+      padding: 14px 16px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+    }
+    
+    .name-option:hover {
+      background: rgba(45, 212, 191, 0.1);
+      border-color: rgba(45, 212, 191, 0.3);
+    }
+    
+    .name-option.selected {
+      background: rgba(45, 212, 191, 0.15);
+      border-color: #2dd4bf;
+    }
+    
+    .name-option .radio {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #64748b;
+      border-radius: 50%;
+      position: relative;
+    }
+    
+    .name-option.selected .radio {
+      border-color: #2dd4bf;
+    }
+    
+    .name-option.selected .radio::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 10px;
+      height: 10px;
+      background: #2dd4bf;
+      border-radius: 50%;
+    }
+    
+    .name-option span:last-child {
+      color: #e2e8f0;
+      font-size: 15px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- SVG Gradient Definition -->
+<svg style="position: absolute; width: 0; height: 0;">
+  <defs>
+    <linearGradient id="qr-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#2dd4bf"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<!-- Screen 0: Welcome -->
+<div class="screen active" id="screen0">
+  <div class="logo">
+    <svg viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  </div>
+  <h1>DeepGlass</h1>
+  <p style="color: #e2e8f0;">Deepfakes can't fool biology.</p>
+  <p style="color: #e2e8f0;">Quantum can't break it.</p>
+  <p class="highlight" style="margin-top: 8px;">You're still you — and it agrees.</p>
+  <button class="btn" onclick="goTo(1)">Begin</button>
+</div>
+
+<!-- Screen 1: The Problem Setup -->
+<div class="screen" id="screen1">
+  <h2>Jerry, you know this world.</h2>
+  <p>Seven years as EVP & General Counsel at Leidos. Every biometric contract. Every identity system.</p>
+  <p>You've seen how credentials work from the inside.</p>
+  <p class="highlight">But have you felt how they fail?</p>
+  <button class="btn" onclick="goTo(2)">Show Me</button>
+</div>
+
+<!-- Screen 2: The Lie Setup -->
+<div class="screen red-bg" id="screen2">
+  <div class="badge">The Broken World</div>
+  <h2>Try something.</h2>
+  <p>Type any name. Claim to be anyone.</p>
+  <p>This is how most identity systems work today—even the ones you helped build.</p>
+  <input type="text" class="input" id="fakeName" placeholder="Type any name...">
+  <p class="small">Go ahead. Lie.</p>
+  <button class="btn" onclick="submitLie()">Submit</button>
+</div>
+
+<!-- Screen 3: The Lie Accepted -->
+<div class="screen red-bg" id="screen3">
+  <div class="badge">Identity Accepted</div>
+  <h2>Welcome, <span id="fakeNameDisplay"></span>.</h2>
+  <p>The system believed you. No challenge. No verification.</p>
+  <p class="highlight">The first lie is free.</p>
+  <p class="small" style="margin-top: 24px;">You reviewed contracts for systems that work exactly like this.</p>
+  <button class="btn" onclick="goTo(4)">Continue</button>
+</div>
+
+<!-- Screen 4: The Inversion -->
+<div class="screen" id="screen4">
+  <h2>Now let's invert it.</h2>
+  <p><strong>The old model:</strong> The institution says "this is <span id="oldModelName"></span>." You trust the credential.</p>
+  <p><strong>The new model:</strong> You attest. Biology certifies. The math confirms.</p>
+  <p class="highlight">No credential to forge. No institution to deceive.</p>
+  <button class="btn" onclick="goTo(5)">Try It</button>
+</div>
+
+<!-- Screen 5: Real Identity Input -->
+<div class="screen" id="screen5">
+  <div class="badge teal">DeepGlass</div>
+  <h2>Now type your real name.</h2>
+  <p>This time, DeepGlass doesn't just accept what you type.</p>
+  <input type="text" class="input" id="typedName" placeholder="Your name...">
+  <button class="btn" onclick="submitReal()">Submit</button>
+</div>
+
+<!-- Screen 6: Verifying -->
+<div class="screen" id="screen6">
+  <div class="logo" style="animation: pulse 1.5s infinite;">
+    <svg viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  </div>
+  <p>Verifying identity...</p>
+  <p class="small">Checking genomic anchor × cryptographic binding</p>
+</div>
+
+<!-- Screen 7: Recognition -->
+<div class="screen" id="screen7">
+  <h2>You typed "<span id="typedNameDisplay"></span>"</h2>
+  <p>DeepGlass doesn't just accept that.</p>
+  <p class="highlight">It finds biological you.</p>
+  <p class="small" style="margin-top: 16px;">Just to confirm...</p>
+  
+  <div class="recognition-box">
+    <div class="legal-name">Are you <span>Jerald S. Howe, Jr.</span>?</div>
+    <div class="aka">Also known as <span>Jerry</span></div>
+    <div class="special" style="text-align: left; font-style: normal;">
+      <span style="color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">Name variants resolved:</span><br>
+      <span style="color: #94a3b8; font-size: 12px;">Gerald, Jerold, Gerry, Jerry → <span style="color: #2dd4bf;">Jerald</span></span><br>
+      <span style="color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-top: 12px; display: block;">Records found:</span><br>
+      <span style="color: #94a3b8; font-size: 13px;">• Princeton → Oxford (Sachs) → Harvard Law</span><br>
+      <span style="color: #94a3b8; font-size: 13px;">• Former EVP & GC, Leidos [NYSE: LDOS]</span><br>
+      <span style="color: #94a3b8; font-size: 13px;">• Co-founder, No Labels</span><br>
+      <span style="color: #94a3b8; font-size: 13px;">• Moderator, Aspen Institute</span><br>
+      <span style="color: #94a3b8; font-size: 13px;">• Vice-Chair, INSA Legal Roundtable</span><br>
+      <span style="color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-top: 12px; display: block;">One record that doesn't exist yet:</span><br>
+      <span style="color: #fbbf24; font-size: 15px; font-weight: 600;">Chairman, DeepGlass Corporation</span>
+    </div>
+  </div>
+  
+  <button class="btn" onclick="goTo('7_5')">That's me.</button>
+</div>
+
+<!-- Screen 7.5: Declaration -->
+<div class="screen" id="screen7_5">
+  <div class="badge teal">Biological Anchor Confirmed</div>
+  <h2>Now attest.</h2>
+  <p>Your biology is the anchor. Your attestation carries your name — plus any records, titles, or authorities you choose.</p>
+  <p class="highlight">What name do you want attested?</p>
+  
+  <div style="margin: 24px 0; max-width: 300px;">
+    <p class="small" style="margin-bottom: 12px; text-align: left;">Select your preferred legal name:</p>
+    <div class="name-option" onclick="selectName('Jerald S. Howe, Jr.')">
+      <span class="radio"></span>
+      <span>Jerald S. Howe, Jr.</span>
+    </div>
+    <div class="name-option" onclick="selectName('Jerry Howe')">
+      <span class="radio"></span>
+      <span>Jerry Howe</span>
+    </div>
+    <div class="name-option" onclick="selectName('Gerald S. Howe Jr.')">
+      <span class="radio"></span>
+      <span>Gerald S. Howe Jr.</span>
+    </div>
+    <div class="name-option" onclick="selectName('custom')">
+      <span class="radio"></span>
+      <span>Other...</span>
+    </div>
+    <input type="text" class="input" id="customName" placeholder="Enter preferred name..." style="display: none; margin-top: 12px;">
+  </div>
+  
+  <button class="btn" onclick="confirmDeclaration()" id="declareBtn" style="opacity: 0.5; pointer-events: none;">I am me.</button>
+</div>
+
+<!-- Screen 8: Final Verification -->
+<div class="screen" id="screen8">
+  <div class="logo" style="animation: glow 2s infinite;">
+    <svg viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  </div>
+  <p style="animation: pulse 1s infinite;">Confirming attestation...</p>
+</div>
+
+<!-- Screen 9: Verified -->
+<div class="screen" id="screen9">
+  <h1 style="color: #2dd4bf;">Attested.</h1>
+  <p class="white" style="font-size: 22px; margin-bottom: 8px;"><span id="declaredNameDisplay"></span></p>
+  <p class="small" style="color: #64748b;">A trusted attestation, certified by biological you.</p>
+  
+  <div class="card teal" style="margin-top: 24px; text-align: left;">
+    <p class="label" style="color: #2dd4bf;">With some other neat stuff included:</p>
+    <p style="color: #94a3b8; font-size: 13px; margin: 6px 0;">✓ Princeton '76 → Oxford (Sachs) → Harvard Law</p>
+    <p style="color: #94a3b8; font-size: 13px; margin: 6px 0;">✓ Former EVP & GC, Leidos [NYSE: LDOS]</p>
+    <p style="color: #94a3b8; font-size: 13px; margin: 6px 0;">✓ Co-founder, No Labels</p>
+    <p style="color: #94a3b8; font-size: 13px; margin: 6px 0;">✓ Moderator, Aspen Institute</p>
+    <p style="color: #fbbf24; font-size: 13px; margin: 6px 0;">✓ Chairman, DeepGlass Corporation</p>
+  </div>
+  
+  <p style="margin-top: 24px;">Not because you claimed it.</p>
+  <p>Not because an authority granted it.</p>
+  <p class="highlight">Because biology certified it.</p>
+  <button class="btn text" onclick="goTo(10)">Continue →</button>
+</div>
+
+<!-- Screen 10: The Comparison -->
+<div class="screen" id="screen10">
+  <h2>See the difference?</h2>
+  <div class="comparison">
+    <div class="card red">
+      <p class="label">THE OLD WAY</p>
+      <p style="color: #f87171;">You typed "<span id="fakeNameCompare"></span>" and the system believed you. No challenge. The first lie was free.</p>
+    </div>
+    <div class="card teal">
+      <p class="label">WITH DEEPGLASS</p>
+      <p style="color: #5eead4;">You typed "<span id="typedNameCompare"></span>" — but biology resolved to <span style="color: #2dd4bf;">Jerald S. Howe, Jr.</span> and certified your attestation as <span style="color: #2dd4bf;" id="declaredNameCompare"></span>.</p>
+    </div>
+  </div>
+  <button class="btn" onclick="goTo(11)">Continue</button>
+</div>
+
+<!-- Screen 11: What This Means -->
+<div class="screen" id="screen11">
+  <h2>What this means:</h2>
+  <p>No more credentials that can be forged.</p>
+  <p>No more biometrics that can be synthesized.</p>
+  <p>No more identity that depends on institutional say-so.</p>
+  <p class="highlight">A trusted attestation, certified by biological you.</p>
+  <p class="small" style="margin-top: 16px;">Your name. Your titles. Your authorities. All anchored to genomic truth.</p>
+  <p class="white" style="margin-top: 24px;">Constraint Intractability Score: Trillion-dollar forgery cost.</p>
+  <button class="btn text" onclick="goTo(12)">But how does it work in practice? →</button>
+</div>
+
+<!-- NEW: Screen 12: The Last Mile Problem -->
+<div class="screen" id="screen12">
+  <h2>The Last Mile</h2>
+  <p>You've enrolled once. Your genomic anchor is bound to your identity.</p>
+  <p>But you can't carry an Anker device in your pocket.</p>
+  <p class="highlight">How do you prove yourself at a bar? A pharmacy? A polling place?</p>
+  <button class="btn" onclick="startQRDemo()">See the Solution</button>
+</div>
+
+<!-- NEW: Screen 13: QR Attestation Demo -->
+<div class="screen" id="screen13">
+  <div class="badge teal">Live Attestation</div>
+  <h2>Time-Bounded Proof</h2>
+  
+  <div class="qr-container" style="position: relative;">
+    <div class="countdown-ring">
+      <svg viewBox="0 0 200 200">
+        <circle class="bg" cx="100" cy="100" r="90"/>
+        <circle class="progress" id="progressRing" cx="100" cy="100" r="90"/>
+      </svg>
+    </div>
+    <div class="qr-code">
+      <div class="qr-center-logo">
+        <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+      </div>
+    </div>
+  </div>
+  
+  <div class="countdown-text" id="countdownText">30</div>
+  <div class="countdown-label">Seconds Remaining</div>
+  
+  <div class="session-info">
+    <div class="session-row">
+      <span class="session-label">Session</span>
+      <span class="session-nonce" id="sessionNonce">7X3K</span>
+    </div>
+    <div class="session-row">
+      <span class="session-label">Time</span>
+      <span class="session-value" id="qrTimestamp">--:--:--</span>
+    </div>
+    <div class="session-row">
+      <span class="session-label">Attribute</span>
+      <span class="session-value">AGE ≥ 21</span>
+    </div>
+  </div>
+  
+  <div class="entropy-bar" id="entropyBar"></div>
+  
+  <p class="small">QR expires. Screenshot dies. Deepfake fails the entropy check.</p>
+  
+  <button class="btn small" onclick="goTo(14)">Why This Matters →</button>
+</div>
+
+<!-- NEW: Screen 14: Anti-Replay Explanation -->
+<div class="screen" id="screen14">
+  <h2>The Screenshot Killer</h2>
+  <p>30-second expiration window.</p>
+  <p>Random entropy bar changes every frame.</p>
+  <p>Session nonce for verbal challenge.</p>
+  <p class="highlight">Only a live generation works.</p>
+  
+  <div class="card teal" style="text-align: left; margin-top: 20px;">
+    <p class="label">WHAT FAILS</p>
+    <p style="color: #94a3b8; font-size: 14px; margin: 4px 0;">✗ Screenshot shared via text — <span style="color: #ef4444;">expired</span></p>
+    <p style="color: #94a3b8; font-size: 14px; margin: 4px 0;">✗ Photo of friend's screen — <span style="color: #ef4444;">expired</span></p>
+    <p style="color: #94a3b8; font-size: 14px; margin: 4px 0;">✗ Deepfake video — <span style="color: #ef4444;">wrong entropy</span></p>
+    <p style="color: #94a3b8; font-size: 14px; margin: 4px 0;">✗ Pre-generated batch — <span style="color: #ef4444;">all expired</span></p>
+  </div>
+  
+  <button class="btn" onclick="goTo(15)">See the Frictionless Day</button>
+</div>
+
+<!-- NEW: Screen 15: The Frictionless Day -->
+<div class="screen" id="screen15">
+  <h2>Your Frictionless Day</h2>
+  <p class="small">One day. DFW to Aspen. Five attestations.</p>
+  <p class="small" style="color: #2dd4bf; margin-top: 8px;">Tap each to see your story:</p>
+  
+  <div class="day-timeline">
+    <div class="day-event" id="event-vote" onclick="selectContext('vote')">
+      <span class="time">7:00 AM</span>
+      <span class="icon">🗳️</span>
+      <div class="context">
+        <div class="context-title">Vote at DFW</div>
+        <div class="context-result" id="result-vote">Tap for story</div>
+      </div>
+    </div>
+    <div class="day-event" id="event-pharmacy" onclick="selectContext('pharmacy')">
+      <span class="time">7:30 PM</span>
+      <span class="icon">💊</span>
+      <div class="context">
+        <div class="context-title">Rx at Dinner</div>
+        <div class="context-result" id="result-pharmacy">Tap for story</div>
+      </div>
+    </div>
+    <div class="day-event" id="event-bar" onclick="selectContext('bar')">
+      <span class="time">9:00 PM</span>
+      <span class="icon">🍺</span>
+      <div class="context">
+        <div class="context-title">Hopkins Ave</div>
+        <div class="context-result" id="result-bar">Tap for story</div>
+      </div>
+    </div>
+    <div class="day-event" id="event-wire" onclick="selectContext('wire')">
+      <span class="time">11:00 PM</span>
+      <span class="icon">🏦</span>
+      <div class="context">
+        <div class="context-title">The Condo</div>
+        <div class="context-result" id="result-wire">Tap for story</div>
+      </div>
+    </div>
+    <div class="day-event" id="event-secure" onclick="selectContext('secure')">
+      <span class="time">Next Day</span>
+      <span class="icon">🔐</span>
+      <div class="context">
+        <div class="context-title">The Board Call</div>
+        <div class="context-result" id="result-secure">Tap for story</div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="stats-row" id="statsRow" style="opacity: 0.3;">
+    <div class="stat">
+      <div class="stat-value" id="statIdentity">1</div>
+      <div class="stat-label">Jerry</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="statContexts">0</div>
+      <div class="stat-label">Attested</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">0</div>
+      <div class="stat-label">Data Leaked</div>
+    </div>
+  </div>
+  
+  <button class="btn" id="frictionlessContinue" onclick="goTo(17)" style="opacity: 0.3; pointer-events: none;">Continue</button>
+</div>
+
+<!-- Screen 15a: Vote Story (Jerry at DFW) -->
+<div class="screen" id="screen15a">
+  <div class="badge teal">🗳️ VOTE — 7:00 AM</div>
+  <h2>DFW → Aspen</h2>
+  <p>NetJets terminal. Boarding in 20 minutes.</p>
+  <p>You're in Dallas visiting Craig. Moderating an Aspen seminar tomorrow. Maryland early voting closes today.</p>
+  <p class="highlight">You open DeepGlass. Tap Vote. Attest.</p>
+  <p style="margin-top: 16px;">Ballot cast in Montgomery County before wheels up in Texas.</p>
+  <p class="small" style="margin-top: 12px;">(NetJets bypassed security today. But if you'd flown commercial? DeepGlass would've made TSA easier too.)</p>
+  
+  <div class="card teal" style="margin-top: 20px; text-align: left;">
+    <p class="label" style="color: #22c55e;">ATTESTATION</p>
+    <p style="color: #e2e8f0; font-size: 14px;">✓ Voter: Jerald S. Howe, Jr.</p>
+    <p style="color: #e2e8f0; font-size: 14px;">✓ County: Montgomery, Maryland</p>
+    <p style="color: #e2e8f0; font-size: 14px;">✓ Status: BALLOT CAST</p>
+    <p style="color: #94a3b8; font-size: 12px; margin-top: 8px;">Democracy didn't wait. Neither did you.</p>
+  </div>
+  
+  <button class="btn" onclick="completeContext('vote')">Back to Day →</button>
+</div>
+
+<!-- Screen 15b: Pharmacy Story (Jerry at dinner) -->
+<div class="screen" id="screen15b">
+  <div class="badge teal">💊 PHARMACY — 7:30 PM</div>
+  <h2>Dinner in Aspen</h2>
+  <p>Altitude's hitting. You text your cardiologist in Bethesda.</p>
+  <p>Script sent to an Aspen pharmacy. You open DeepGlass, attest to the pharmacy app, order delivery.</p>
+  <p class="highlight">Uber drops it at your condo. You never leave the table.</p>
+  <p style="margin-top: 16px;">The sommelier never knew. Your dinner guests never knew.</p>
+  <p>Just you, your biology, and your meds waiting at home.</p>
+  
+  <div class="card teal" style="margin-top: 20px; text-align: left;">
+    <p class="label" style="color: #22c55e;">ATTESTATION</p>
+    <p style="color: #e2e8f0; font-size: 14px;">✓ Patient: Jerald S. Howe, Jr.</p>
+    <p style="color: #e2e8f0; font-size: 14px;">✓ Rx Match: VERIFIED</p>
+    <p style="color: #e2e8f0; font-size: 14px;">✓ Delivery: 312 E Hopkins Ave</p>
+    <p style="color: #94a3b8; font-size: 12px; margin-top: 8px;">No ID fumbling. No HIPAA exposure. Just health.</p>
+  </div>
+  
+  <button class="btn" onclick="completeContext('pharmacy')">Back to Day →</button>
+</div>
+
+<!-- Screen 15c: Bar Story (Jerry post-dinner) -->
+<div class="screen" id="screen15c">
+  <div class="badge teal">🍺 POST-DINNER — 9:00 PM</div>
+  <h2>Hopkins Ave</h2>
+  <p>The new place cards everyone. You're 70.</p>
+  <p>You smile. Open DeepGlass.</p>
+  <p class="highlight">The hostess sees one thing:</p>
+  <p style="color: #2dd4bf; font-size: 24px; font-weight: 600; margin: 16px 0;">AGE ≥ 21 ✓</p>
+  <p>Not your birthdate. Not your address. Not your name.</p>
+  <p class="small" style="margin-top: 12px;">"Sorry sir, you just... don't look like you'd know how to do that."</p>
+  
+  <div class="card teal" style="margin-top: 20px; text-align: left;">
+    <p class="label" style="color: #22c55e;">ATTESTATION</p>
+    <p style="color: #e2e8f0; font-size: 14px;">✓ Age Threshold: ≥ 21</p>
+    <p style="color: #e2e8f0; font-size: 14px;">✓ Credential: VALID</p>
+    <p style="color: #94a3b8; font-size: 12px; margin-top: 8px;">Zero-knowledge proof. She knows you're legal. Nothing else.</p>
+  </div>
+  
+  <button class="btn" onclick="completeContext('bar')">Back to Day →</button>
+</div>
+
+<!-- Screen 15d: Wire Transfer Story (Jerry at condo) -->
+<div class="screen" id="screen15d">
+  <div class="badge teal">🏦 THE CONDO — 11:00 PM</div>
+  <h2>$47,000</h2>
+  <p>Your grandson's spring tuition. Due tomorrow.</p>
+  <p>You open your bank app. "Authorize wire?"</p>
+  <p class="highlight">You attest.</p>
+  <p style="margin-top: 16px;">The bank knows it's really you.</p>
+  <p>Not a voice clone calling from "your number."</p>
+  <p>Not a deepfake on a Zoom call.</p>
+  <p style="color: #22c55e; margin-top: 12px;">Released.</p>
+  
+  <div class="card teal" style="margin-top: 20px; text-align: left;">
+    <p class="label" style="color: #22c55e;">ATTESTATION</p>
+    <p style="color: #e2e8f0; font-size: 14px;">✓ Account Holder: Jerald S. Howe, Jr.</p>
+    <p style="color: #e2e8f0; font-size: 14px;">✓ Authorization: CONFIRMED</p>
+    <p style="color: #e2e8f0; font-size: 14px;">✓ Wire: $47,000 → RELEASED</p>
+    <p style="color: #94a3b8; font-size: 12px; margin-top: 8px;">You sleep well.</p>
+  </div>
+  
+  <button class="btn" onclick="completeContext('wire')">Back to Day →</button>
+</div>
+
+<!-- Screen 15e: Palantir Board Call Story -->
+<div class="screen" id="screen15e">
+  <div class="badge teal">🔐 THE BOARD CALL — Next Day</div>
+  <h2>Palantir</h2>
+  <p>They've asked you to join the board. First meeting is a secure call.</p>
+  <p>Defense contracts. Intelligence partnerships. Government relationships.</p>
+  <p class="highlight">Nobody wants another Signalgate.</p>
+  <p style="margin-top: 16px;">Before the call connects, every participant attests.</p>
+  <p>Not just a password. Not just 2FA.</p>
+  <p style="color: #2dd4bf;">Biological confirmation that every voice on this call is who they claim to be.</p>
+  
+  <div class="card teal" style="margin-top: 20px; text-align: left;">
+    <p class="label" style="color: #22c55e;">ATTESTATION</p>
+    <p style="color: #e2e8f0; font-size: 14px;">✓ Participant: Jerald S. Howe, Jr.</p>
+    <p style="color: #e2e8f0; font-size: 14px;">✓ Clearance: VERIFIED</p>
+    <p style="color: #e2e8f0; font-size: 14px;">✓ Session: SECURED</p>
+    <p style="color: #94a3b8; font-size: 12px; margin-top: 8px;">No deepfakes on this call. No voice clones. Just verified humans.</p>
+  </div>
+  
+  <p class="small" style="margin-top: 16px; color: #94a3b8;">You've spent 35 years in rooms where identity mattered.<br>Now you can prove who's in the room — even when there is no room.</p>
+  
+  <button class="btn" onclick="completeContext('secure')">Back to Day →</button>
+</div>
+
+<!-- Screen 17: Final -->
+<div class="screen" id="screen17">
+  <div class="logo">
+    <svg viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  </div>
+  <h2>That's DeepGlass.</h2>
+  <p class="tagline">I am me and it agrees.</p>
+  
+  <div class="divider"></div>
+  
+  <div class="final-message">
+    <p>Jerry, you've spent 35 years at the intersection of law, technology, and national security.</p>
+    <p>From Leidos to INSA to Aspen. You've seen every identity system from the inside.</p>
+    <p>You know what's coming. Synthetic biology. Quantum decryption. The credential collapse.</p>
+    <p class="white">This is what we build together, Jerry.</p>
+    <p class="small" style="margin-top: 24px;">19 provisional patents. 341 claims. Filing this month.</p>
+  </div>
+  
+  <div class="divider"></div>
+  
+  <div class="card teal" style="text-align: left;">
+    <h3 style="color: #fbbf24; font-size: 16px; margin-bottom: 12px;">By the way, Jerry...</h3>
+    <p style="margin-top: 12px; font-size: 15px;">This demo just ran inside your phone's <span style="color: #2dd4bf;">Trusted Execution Environment</span>.</p>
+    <p style="margin-top: 12px; font-size: 15px;">Apple calls it the Secure Enclave. You'd call it something else:</p>
+    <p style="margin-top: 12px; color: white; font-weight: 500;">Your personal SCIF.</p>
+    <p style="margin-top: 16px; font-size: 14px; color: #94a3b8;">Isolated. Tamper-resistant. Hardware-rooted trust. The same architecture that protects nuclear launch codes—in your pocket.</p>
+    <p style="margin-top: 12px; font-size: 14px; color: #94a3b8;">DeepGlass doesn't require new infrastructure. It leverages what's already deployed on 3 billion devices.</p>
+  </div>
+  
+  <div class="signature">
+    <p class="company">DeepGlass Genomics</p>
+    <p class="tagline-small">"I am me and it agrees"</p>
+  </div>
+  
+  <p class="highlight" style="margin-top: 24px;">Ready to talk?</p>
+  
+  <button class="btn text" onclick="reset()">Start over</button>
+</div>
+
+<script>
+  let fakeName = '';
+  let typedName = '';
+  let declaredName = '';
+  let countdownInterval = null;
+  let entropyInterval = null;
+  
+  function goTo(screenNum) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const screen = document.getElementById('screen' + screenNum);
+    if (screen) screen.classList.add('active');
+    window.scrollTo(0, 0);
+    
+    // Stop intervals when leaving QR screen
+    if (screenNum !== 13) {
+      clearInterval(countdownInterval);
+      clearInterval(entropyInterval);
+    }
+  }
+  
+  function submitLie() {
+    fakeName = document.getElementById('fakeName').value.trim();
+    if (!fakeName) return;
+    document.getElementById('fakeNameDisplay').textContent = fakeName;
+    document.getElementById('oldModelName').textContent = fakeName;
+    goTo(3);
+  }
+  
+  function submitReal() {
+    typedName = document.getElementById('typedName').value.trim();
+    if (!typedName) return;
+    goTo(6);
+    setTimeout(() => {
+      document.getElementById('typedNameDisplay').textContent = typedName;
+      goTo(7);
+    }, 2500);
+  }
+  
+  function selectName(name) {
+    // Clear all selections
+    document.querySelectorAll('.name-option').forEach(opt => opt.classList.remove('selected'));
+    
+    // Select the clicked option
+    event.currentTarget.classList.add('selected');
+    
+    // Handle custom name input
+    const customInput = document.getElementById('customName');
+    if (name === 'custom') {
+      customInput.style.display = 'block';
+      customInput.focus();
+      declaredName = '';
+    } else {
+      customInput.style.display = 'none';
+      declaredName = name;
+    }
+    
+    // Enable declare button
+    updateDeclareButton();
+  }
+  
+  function updateDeclareButton() {
+    const btn = document.getElementById('declareBtn');
+    const customInput = document.getElementById('customName');
+    const hasSelection = document.querySelector('.name-option.selected');
+    const isCustom = hasSelection && hasSelection.querySelector('span:last-child').textContent === 'Other...';
+    
+    if (isCustom) {
+      declaredName = customInput.value.trim();
+    }
+    
+    if (declaredName || (isCustom && customInput.value.trim())) {
+      btn.style.opacity = '1';
+      btn.style.pointerEvents = 'auto';
+    } else {
+      btn.style.opacity = '0.5';
+      btn.style.pointerEvents = 'none';
+    }
+  }
+  
+  function confirmDeclaration() {
+    const customInput = document.getElementById('customName');
+    if (!declaredName && customInput.value.trim()) {
+      declaredName = customInput.value.trim();
+    }
+    if (!declaredName) return;
+    
+    // Update all declared name displays
+    document.getElementById('declaredNameDisplay').textContent = declaredName;
+    document.getElementById('declaredNameCompare').textContent = declaredName;
+    
+    goTo(8);
+    setTimeout(() => {
+      document.getElementById('fakeNameCompare').textContent = fakeName;
+      document.getElementById('typedNameCompare').textContent = typedName;
+      goTo(9);
+    }, 2000);
+  }
+  
+  // Add event listener for custom name input
+  document.addEventListener('DOMContentLoaded', function() {
+    const customInput = document.getElementById('customName');
+    if (customInput) {
+      customInput.addEventListener('input', updateDeclareButton);
+    }
+  });
+  
+  // Frictionless Day context selection
+  let verifiedContexts = 0;
+  let completedContexts = {vote: false, pharmacy: false, bar: false, wire: false, secure: false};
+  const contextResults = {
+    vote: '✓ Ballot Cast',
+    pharmacy: '✓ Rx Delivered', 
+    bar: '✓ Age ≥ 21',
+    wire: '✓ $47K Released',
+    secure: '✓ Session Secured'
+  };
+  const contextScreens = {
+    vote: '15a',
+    pharmacy: '15b',
+    bar: '15c',
+    wire: '15d',
+    secure: '15e'
+  };
+  
+  function selectContext(context) {
+    // Already completed? Still let them view the story again
+    goTo(contextScreens[context]);
+  }
+  
+  function completeContext(context) {
+    const event = document.getElementById('event-' + context);
+    const result = document.getElementById('result-' + context);
+    
+    // Mark as verified if not already
+    if (!completedContexts[context]) {
+      completedContexts[context] = true;
+      event.classList.add('verified');
+      result.textContent = contextResults[context];
+      verifiedContexts++;
+      
+      // Update stats
+      document.getElementById('statContexts').textContent = verifiedContexts;
+      document.getElementById('statsRow').style.opacity = '1';
+      
+      // Enable continue after all 5 verified
+      if (verifiedContexts >= 5) {
+        const btn = document.getElementById('frictionlessContinue');
+        btn.style.opacity = '1';
+        btn.style.pointerEvents = 'auto';
+      }
+    }
+    
+    // Go back to frictionless day
+    goTo(15);
+  }
+  
+  function startQRDemo() {
+    goTo(13);
+    startCountdown();
+    startEntropyBar();
+    updateTimestamp();
+    generateNonce();
+  }
+  
+  function startCountdown() {
+    let seconds = 30;
+    const ring = document.getElementById('progressRing');
+    const text = document.getElementById('countdownText');
+    const circumference = 2 * Math.PI * 90;
+    
+    ring.style.strokeDasharray = circumference;
+    ring.style.strokeDashoffset = 0;
+    text.style.color = '#2dd4bf';
+    
+    countdownInterval = setInterval(() => {
+      seconds--;
+      text.textContent = seconds;
+      
+      const offset = circumference * (1 - seconds / 30);
+      ring.style.strokeDashoffset = offset;
+      
+      if (seconds <= 10) text.style.color = '#f59e0b';
+      if (seconds <= 5) text.style.color = '#ef4444';
+      
+      if (seconds <= 0) {
+        clearInterval(countdownInterval);
+        text.textContent = '0';
+        // Restart for demo purposes
+        setTimeout(() => {
+          if (document.getElementById('screen13').classList.contains('active')) {
+            startCountdown();
+          }
+        }, 1000);
+      }
+    }, 1000);
+  }
+  
+  function startEntropyBar() {
+    const bar = document.getElementById('entropyBar');
+    bar.innerHTML = '';
+    
+    for (let i = 0; i < 20; i++) {
+      const seg = document.createElement('div');
+      seg.className = 'entropy-segment';
+      bar.appendChild(seg);
+    }
+    
+    entropyInterval = setInterval(() => {
+      const segments = bar.querySelectorAll('.entropy-segment');
+      segments.forEach(seg => {
+        seg.classList.toggle('active', Math.random() > 0.5);
+      });
+    }, 200);
+  }
+  
+  function updateTimestamp() {
+    const now = new Date();
+    const time = now.toLocaleTimeString('en-US', { hour12: false });
+    document.getElementById('qrTimestamp').textContent = time;
+  }
+  
+  function generateNonce() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let nonce = '';
+    for (let i = 0; i < 4; i++) {
+      nonce += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    document.getElementById('sessionNonce').textContent = nonce;
+  }
+  
+  function reset() {
+    fakeName = '';
+    typedName = '';
+    declaredName = '';
+    verifiedContexts = 0;
+    completedContexts = {vote: false, pharmacy: false, bar: false, wire: false, secure: false};
+    document.getElementById('fakeName').value = '';
+    document.getElementById('typedName').value = '';
+    
+    // Reset name options
+    document.querySelectorAll('.name-option').forEach(opt => opt.classList.remove('selected'));
+    document.getElementById('customName').style.display = 'none';
+    document.getElementById('customName').value = '';
+    document.getElementById('declareBtn').style.opacity = '0.5';
+    document.getElementById('declareBtn').style.pointerEvents = 'none';
+    
+    // Reset frictionless day
+    ['vote', 'pharmacy', 'bar', 'wire', 'secure'].forEach(ctx => {
+      const event = document.getElementById('event-' + ctx);
+      const result = document.getElementById('result-' + ctx);
+      if (event) event.classList.remove('verified');
+      if (result) {
+        result.textContent = 'Tap for story';
+        result.style.color = '';
+      }
+    });
+    const statsRow = document.getElementById('statsRow');
+    const statContexts = document.getElementById('statContexts');
+    const continueBtn = document.getElementById('frictionlessContinue');
+    if (statsRow) statsRow.style.opacity = '0.3';
+    if (statContexts) statContexts.textContent = '0';
+    if (continueBtn) {
+      continueBtn.style.opacity = '0.3';
+      continueBtn.style.pointerEvents = 'none';
+    }
+    
+    clearInterval(countdownInterval);
+    clearInterval(entropyInterval);
+    goTo(0);
+  }
+</script>
+
+</body>
+</html>
