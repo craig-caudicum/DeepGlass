@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>DeepGlass</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(to bottom, #0f172a, #1e293b);
+      min-height: 100vh;
+      color: white;
+      overflow-x: hidden;
+    }
+    
+    .screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+      text-align: center;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    .screen.active {
+      display: flex;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 0 30px rgba(45, 212, 191, 0.3); }
+      50% { box-shadow: 0 0 60px rgba(45, 212, 191, 0.6); }
+    }
+    
+    @keyframes countdown {
+      from { width: 100%; }
+      to { width: 0%; }
+    }
+    
+    .logo {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #2dd4bf, #3b82f6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 32px;
+    }
+    
+    .logo svg {
+      width: 32px;
+      height: 32px;
+      fill: none;
+      stroke: white;
+      stroke-width: 2;
+    }
+    
+    h1 {
+      font-size: 32px;
+      font-weight: 300;
+      margin-bottom: 16px;
+    }
+    
+    h2 {
+      font-size: 24px;
+      font-weight: 300;
+      margin-bottom: 24px;
+    }
+    
+    p {
+      color: #94a3b8;
+      font-size: 18px;
+      line-height: 1.6;
+      margin-bottom: 16px;
+      max-width: 320px;
+    }
+    
+    p.highlight {
+      color: #2dd4bf;
+    }
+    
+    p.white {
+      color: white;
+    }
+    
+    p.small {
+      font-size: 14px;
+      color: #64748b;
+    }
+    
+    p.tagline {
+      color: #2dd4bf;
+      font-size: 20px;
+      font-style: italic;
+    }
+    
+    .btn {
+      background: #334155;
+      color: white;
+      border: none;
+      padding: 16px 32px;
+      border-radius: 12px;
+      font-size: 18px;
+      cursor: pointer;
+      margin-top: 24px;
+      transition: all 0.2s;
+      min-width: 200px;
+    }
+    
+    .btn:active {
+      transform: scale(0.98);
+    }
+    
+    .btn.gradient {
+      background: linear-gradient(135deg, #2dd4bf, #3b82f6);
+    }
+    
+    .btn.text {
+      background: transparent;
+      color: #94a3b8;
+      text-decoration: underline;
+    }
+    
+    .btn.small {
+      padding: 12px 24px;
+      font-size: 16px;
+      min-width: auto;
+    }
+    
+    .input {
+      background: #1e293b;
+      border: 2px solid #334155;
+      color: white;
+      padding: 16px;
+      border-radius: 12px;
+      font-size: 18px;
+      width: 100%;
+      max-width: 280px;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    
+    .input:focus {
+      outline: none;
+      border-color: #ef4444;
+    }
+    
+    .input.teal:focus {
+      border-color: #2dd4bf;
+    }
+    
+    .badge {
+      background: #ef4444;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .badge.teal {
+      background: #2dd4bf;
+      color: #0f172a;
+    }
+    
+    .badge.blue {
+      background: #3b82f6;
+    }
+    
+    .badge.amber {
+      background: #f59e0b;
+      color: #0f172a;
+    }
+    
+    .rings {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      margin-bottom: 32px;
+    }
+    
+    .ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 2px solid;
+    }
+    
+    .ring.outer {
+      width: 120px;
+      height: 120px;
+      border-color: #334155;
+      top: 0;
+      left: 0;
+    }
+    
+    .ring.middle {
+      width: 80px;
+      height: 80px;
+      border-color: #2dd4bf;
+      top: 20px;
+      left: 20px;
+    }
+    
+    .ring.inner {
+      width: 40px;
+      height: 40px;
+      border-color: #3b82f6;
+      top: 40px;
+      left: 40px;
+    }
+    
+    .rings.pulse .ring {
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    
+    .rings.pulse .ring.middle {
+      animation-delay: 0.2s;
+    }
+    
+    .rings.pulse .ring.inner {
+      animation-delay: 0.4s;
+    }
+    
+    .checkmark {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: #ef4444;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+    
+    .checkmark.teal {
+      background: #2dd4bf;
+    }
+    
+    .checkmark svg {
+      width: 40px;
+      height: 40px;
+      stroke: white;
+      fill: none;
+    }
+    
+    .warning-box {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid #ef4444;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 16px 0;
+      max-width: 300px;
+    }
+    
+    .success-box {
+      background: rgba(45, 212, 191, 0.1);
+      border: 1px solid #2dd4bf;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 16px 0;
+      max-width: 300px;
+    }
+    
+    .recognition-box {
+      background: rgba(45, 212, 191, 0.05);
+      border: 1px solid #2dd4bf;
+      border-radius: 16px;
+      padding: 24px;
+      margin: 20px 0;
+      max-width: 320px;
+    }
+    
+    .recognition-box p {
+      margin-bottom: 12px;
+      color: #94a3b8;
+    }
+    
+    .recognition-box p:last-child {
+      margin-bottom: 0;
+    }
+    
+    .recognition-box span {
+      color: #2dd4bf;
+      font-weight: 600;
+    }
+    
+    .recognition-box .legal-name span {
+      font-size: 20px;
+    }
+    
+    .recognition-box .special {
+      font-style: italic;
+      border-top: 1px solid #334155;
+      padding-top: 12px;
+      margin-top: 12px;
+    }
+    
+    .records-list {
+      text-align: left;
+      max-width: 300px;
+      margin: 16px 0;
+    }
+    
+    .records-list .record {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #334155;
+      font-size: 14px;
+    }
+    
+    .records-list .record .label {
+      color: #64748b;
+    }
+    
+    .records-list .record .value {
+      color: #2dd4bf;
+    }
+    
+    .records-list .record.highlight {
+      background: rgba(45, 212, 191, 0.1);
+      padding: 8px;
+      margin: 4px -8px;
+      border-radius: 8px;
+    }
+    
+    /* QR Code Styles */
+    .qr-container {
+      background: white;
+      padding: 20px;
+      border-radius: 16px;
+      margin: 20px 0;
+      animation: glow 2s ease-in-out infinite;
+    }
+    
+    .qr-code {
+      width: 180px;
+      height: 180px;
+      background: 
+        linear-gradient(90deg, #000 25%, transparent 25%) 0 0 / 12px 12px,
+        linear-gradient(90deg, transparent 75%, #000 75%) 0 0 / 12px 12px,
+        linear-gradient(0deg, #000 25%, transparent 25%) 0 0 / 12px 12px,
+        linear-gradient(0deg, transparent 75%, #000 75%) 0 0 / 12px 12px,
+        white;
+      border-radius: 8px;
+      position: relative;
+    }
+    
+    .qr-code::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, #2dd4bf, #3b82f6);
+      border-radius: 8px;
+    }
+    
+    .countdown-bar {
+      width: 100%;
+      max-width: 220px;
+      height: 6px;
+      background: #334155;
+      border-radius: 3px;
+      margin: 16px 0;
+      overflow: hidden;
+    }
+    
+    .countdown-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #2dd4bf, #3b82f6);
+      border-radius: 3px;
+      transition: width 1s linear;
+    }
+    
+    .entropy-bar {
+      width: 100%;
+      max-width: 220px;
+      height: 24px;
+      background: #1e293b;
+      border-radius: 12px;
+      margin: 12px 0;
+      overflow: hidden;
+      display: flex;
+    }
+    
+    .entropy-segment {
+      flex: 1;
+      margin: 2px;
+      border-radius: 8px;
+      transition: background-color 0.3s;
+    }
+    
+    .qr-meta {
+      display: flex;
+      justify-content: space-between;
+      max-width: 220px;
+      margin-top: 12px;
+      font-size: 12px;
+      color: #64748b;
+    }
+    
+    .qr-meta span {
+      color: #2dd4bf;
+      font-family: monospace;
+    }
+    
+    /* Architecture Diagram */
+    .arch-diagram {
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 20px;
+      margin: 20px 0;
+      max-width: 320px;
+    }
+    
+    .arch-layer {
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 8px;
+      font-size: 14px;
+      text-align: center;
+    }
+    
+    .arch-layer.accumulate {
+      background: linear-gradient(135deg, #8b5cf6, #6366f1);
+      color: white;
+    }
+    
+    .arch-layer.deepglass {
+      background: linear-gradient(135deg, #2dd4bf, #3b82f6);
+      color: white;
+    }
+    
+    .arch-layer.bio {
+      background: #065f46;
+      color: #6ee7b7;
+    }
+    
+    .arch-layer.tee {
+      background: #1e3a5f;
+      color: #7dd3fc;
+    }
+    
+    .arch-arrow {
+      text-align: center;
+      color: #64748b;
+      font-size: 12px;
+      padding: 4px 0;
+    }
+    
+    /* Timeline */
+    .timeline {
+      max-width: 300px;
+      margin: 20px 0;
+    }
+    
+    .timeline-item {
+      display: flex;
+      gap: 16px;
+      padding: 12px 0;
+      border-left: 2px solid #334155;
+      padding-left: 20px;
+      position: relative;
+    }
+    
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -6px;
+      top: 16px;
+      width: 10px;
+      height: 10px;
+      background: #2dd4bf;
+      border-radius: 50%;
+    }
+    
+    .timeline-item.future::before {
+      background: #334155;
+      border: 2px solid #2dd4bf;
+    }
+    
+    .timeline-year {
+      color: #2dd4bf;
+      font-weight: 600;
+      min-width: 50px;
+    }
+    
+    .timeline-event {
+      color: #94a3b8;
+      font-size: 14px;
+    }
+    
+    /* Name Variant Cards */
+    .name-variants {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 280px;
+      margin: 20px 0;
+    }
+    
+    .name-card {
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .name-card .doc-type {
+      color: #64748b;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .name-card .doc-name {
+      color: #f59e0b;
+      font-family: monospace;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    /* Comparison Table */
+    .compare-table {
+      max-width: 320px;
+      margin: 20px 0;
+    }
+    
+    .compare-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    
+    .compare-cell {
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      text-align: center;
+    }
+    
+    .compare-cell.header {
+      font-weight: 600;
+      color: #94a3b8;
+    }
+    
+    .compare-cell.old {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+    }
+    
+    .compare-cell.new {
+      background: rgba(45, 212, 191, 0.1);
+      border: 1px solid rgba(45, 212, 191, 0.3);
+      color: #5eead4;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Screen 0: Welcome -->
+<div class="screen active" id="screen0">
+  <div class="logo">
+    <svg viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+    </svg>
+  </div>
+  <h1>DeepGlass</h1>
+  <p class="tagline">I am me and it agrees.</p>
+  <p>A brief demonstration of constitutive identity.</p>
+  <button class="btn gradient" onclick="goTo(1)">Begin</button>
+</div>
+
+<!-- Screen 1: The Setup -->
+<div class="screen" id="screen1">
+  <div class="badge">Practice Round</div>
+  <h2>Let's try something.</h2>
+  <p>Pretend you're signing into a financial system.</p>
+  <p>Type any name. Make one up.</p>
+  <input type="text" class="input" id="fakeName" placeholder="Any name you want">
+  <button class="btn" onclick="submitFake()">Submit</button>
+</div>
+
+<!-- Screen 2: Fake Success -->
+<div class="screen" id="screen2">
+  <div class="checkmark">
+    <svg viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+    </svg>
+  </div>
+  <h2>Welcome, <span id="fakeNameDisplay"></span>.</h2>
+  <p>That was easy, wasn't it?</p>
+  <p class="small">No verification. No challenge. Just trust.</p>
+  <button class="btn" onclick="goTo(3)">Continue</button>
+</div>
+
+<!-- Screen 3: The Problem -->
+<div class="screen" id="screen3">
+  <h2>The first lie is free.</h2>
+  <div class="warning-box">
+    <p class="white" style="font-size: 16px;">You just authenticated as someone you're not.</p>
+    <p class="small">No challenge. No verification. This is how identity fraud scales.</p>
+  </div>
+  <p class="small">You've built identity systems. You know how they fail.</p>
+  <button class="btn" onclick="goTo(4)">Continue</button>
+</div>
+
+<!-- Screen 4: The Inversion -->
+<div class="screen" id="screen4">
+  <h2>Now let's invert it.</h2>
+  <p>The old model: The institution says who you are.</p>
+  <p class="highlight">The new model: You are you. And the mathematics agrees.</p>
+  <p>Not keys about you. Not credentials about you.</p>
+  <p class="white">The credential <em>is</em> you.</p>
+  <button class="btn" onclick="goTo(5)">Try Again With DeepGlass</button>
+</div>
+
+<!-- Screen 5: Real Entry -->
+<div class="screen" id="screen5">
+  <div class="badge teal">Constitutive Identity</div>
+  <h2>What do you go by?</h2>
+  <p>Type whatever you usually use.</p>
+  <input type="text" class="input teal" id="typedName" placeholder="Your name">
+  <button class="btn" onclick="submitReal()">Continue</button>
+</div>
+
+<!-- Screen 6: Recognition -->
+<div class="screen" id="screen6">
+  <div class="rings pulse">
+    <div class="ring outer"></div>
+    <div class="ring middle"></div>
+    <div class="ring inner"></div>
+  </div>
+  <h2>Verifying...</h2>
+  <p>DeepGlass doesn't believe claims.</p>
+  <p>It recognizes signatures.</p>
+</div>
+
+<!-- Screen 7: The Recognition Moment -->
+<div class="screen" id="screen7">
+  <div class="logo">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  </div>
+  <h2>Just to confirm...</h2>
+  <div class="recognition-box">
+    <p class="legal-name">Are you <span>Paul Snow</span>?</p>
+    <p class="aka">BS Louisiana Tech, <span>MS Texas A&M</span>?</p>
+    <p class="aka">Founder of <span>Factom</span>, Chief Architect of <span>Accumulate</span>?</p>
+    <p class="special">The one who <span>testified before Congress</span> on March 16, 2016.</p>
+  </div>
+  <p class="small">You typed "<span id="typedNameDisplay"></span>" — but DeepGlass knows who you really are.</p>
+  <button class="btn" onclick="goTo(8)">Yes, that's me</button>
+</div>
+
+<!-- Screen 8: Records Found -->
+<div class="screen" id="screen8">
+  <h2>Records verified.</h2>
+  <div class="records-list">
+    <div class="record">
+      <span class="label">Education</span>
+      <span class="value">Louisiana Tech → Texas A&M</span>
+    </div>
+    <div class="record">
+      <span class="label">Texas TIERS</span>
+      <span class="value">Rules Engine Developer</span>
+    </div>
+    <div class="record">
+      <span class="label">Factom</span>
+      <span class="value">Founder & CEO, 2014</span>
+    </div>
+    <div class="record">
+      <span class="label">Accumulate Protocol</span>
+      <span class="value">Chief Architect</span>
+    </div>
+    <div class="record">
+      <span class="label">Congress</span>
+      <span class="value">Testified 3/16/2016</span>
+    </div>
+    <div class="record">
+      <span class="label">Texas Bitcoin Conference</span>
+      <span class="value">Chairman</span>
+    </div>
+    <div class="record highlight">
+      <span class="label">Identity Systems</span>
+      <span class="value">30+ years</span>
+    </div>
+  </div>
+  <p class="small">Not because you claimed it. Because it's triangulated.</p>
+  <button class="btn" onclick="goTo(9)">Continue</button>
+</div>
+
+<!-- Screen 9: Declaration -->
+<div class="screen" id="screen9">
+  <div class="rings">
+    <div class="ring outer"></div>
+    <div class="ring middle"></div>
+    <div class="ring inner"></div>
+  </div>
+  <h2>Paul,</h2>
+  <p class="white" style="font-size: 20px;">are you ready to declare yourself?</p>
+  <button class="btn gradient" onclick="verify()">I am me</button>
+</div>
+
+<!-- Screen 10: Verifying -->
+<div class="screen" id="screen10">
+  <div class="rings pulse">
+    <div class="ring outer"></div>
+    <div class="ring middle"></div>
+    <div class="ring inner"></div>
+  </div>
+  <h2 style="color: #2dd4bf;">Verifying...</h2>
+  <p>Confirming Paul Snow.</p>
+  <p class="small">Triangulating constitutive signature.</p>
+</div>
+
+<!-- Screen 11: Verified -->
+<div class="screen" id="screen11">
+  <div class="checkmark teal">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+    </svg>
+  </div>
+  <h1>I am me</h1>
+  <p class="tagline">and it agrees.</p>
+  <p>Hello, Paul.</p>
+  <p>Not because you said so. Not because a database said so.</p>
+  <p class="highlight">Because you ARE you.</p>
+  <button class="btn" onclick="goTo(12)">Continue</button>
+</div>
+
+<!-- Screen 12: The Name Problem -->
+<div class="screen" id="screen12">
+  <div class="badge amber">The Name Problem</div>
+  <h2>Which one is you?</h2>
+  <div class="name-variants">
+    <div class="name-card">
+      <span class="doc-type">Driver's License</span>
+      <span class="doc-name">PAUL SNOW</span>
+    </div>
+    <div class="name-card">
+      <span class="doc-type">Passport</span>
+      <span class="doc-name">SNOW, PAUL</span>
+    </div>
+    <div class="name-card">
+      <span class="doc-type">TSA Pre✓</span>
+      <span class="doc-name">SNOW/PAUL</span>
+    </div>
+    <div class="name-card">
+      <span class="doc-type">Congressional Record</span>
+      <span class="doc-name">Paul Snow, Chief Architect</span>
+    </div>
+  </div>
+  <p class="small">Four systems. Four formats. Same person?</p>
+  <button class="btn" onclick="goTo(13)">Continue</button>
+</div>
+
+<!-- Screen 13: TSA Checkpoint -->
+<div class="screen" id="screen13">
+  <div class="badge blue">TSA Checkpoint</div>
+  <h2>Austin-Bergstrom International</h2>
+  <p>You're flying to a conference. The agent scans your license.</p>
+  <div class="warning-box">
+    <p class="white" style="font-size: 14px;">Behind the scenes:</p>
+    <p class="small" style="margin-bottom: 4px;">• Secure Flight pre-screening</p>
+    <p class="small" style="margin-bottom: 4px;">• Watch list comparison</p>
+    <p class="small" style="margin-bottom: 4px;">• Facial recognition match</p>
+    <p class="small" style="margin-bottom: 0;">• REAL ID database query</p>
+  </div>
+  <p class="highlight">You built Texas TIERS. You know how fragile these linkages are.</p>
+  <button class="btn" onclick="goTo(14)">Continue</button>
+</div>
+
+<!-- Screen 14: ICE/CBP Return -->
+<div class="screen" id="screen14">
+  <div class="badge">CBP Global Entry</div>
+  <h2>Coming home from abroad.</h2>
+  <p>The kiosk scans your passport. Captures your face. Takes your fingerprints.</p>
+  <div class="warning-box">
+    <p class="white" style="font-size: 14px;">Behind the scenes:</p>
+    <p class="small" style="margin-bottom: 4px;">• IDENT biometric database</p>
+    <p class="small" style="margin-bottom: 4px;">• TECS border crossing records</p>
+    <p class="small" style="margin-bottom: 4px;">• ESTA/Visa history</p>
+    <p class="small" style="margin-bottom: 0;">• Interpol/NCIC queries</p>
+  </div>
+  <p class="small">Multiple databases. Multiple name formats. Multiple biometric templates.</p>
+  <p class="highlight">What's the single source of truth?</p>
+  <button class="btn" onclick="goTo(15)">Continue</button>
+</div>
+
+<!-- Screen 15: The Problem -->
+<div class="screen" id="screen15">
+  <h2>The problem you know:</h2>
+  <p>TSA has one version of you.</p>
+  <p>CBP has another.</p>
+  <p>Your driver's license, passport, and Global Entry all disagree on formatting.</p>
+  <p class="highlight">None of them anchor to YOU.</p>
+  <p>They anchor to documents. Documents can be forged, stolen, duplicated.</p>
+  <button class="btn" onclick="goTo(16)">What's the alternative?</button>
+</div>
+
+<!-- Screen 16: DeepGlass at TSA -->
+<div class="screen" id="screen16">
+  <div class="badge teal">DeepGlass Attestation</div>
+  <h2>Same checkpoint. Different anchor.</h2>
+  <div class="success-box">
+    <p class="white" style="font-size: 14px;">What changes:</p>
+    <p class="small" style="margin-bottom: 4px;">• Your biology IS the credential</p>
+    <p class="small" style="margin-bottom: 4px;">• Name format irrelevant</p>
+    <p class="small" style="margin-bottom: 4px;">• No document to forge</p>
+    <p class="small" style="margin-bottom: 0;">• Triangulated against kin network</p>
+  </div>
+  <p>The agent doesn't check your documents against databases.</p>
+  <p class="highlight">The agent checks YOU against mathematics.</p>
+  <button class="btn" onclick="goTo(17)">Show me</button>
+</div>
+
+<!-- Screen 17: The Architecture Question -->
+<div class="screen" id="screen17">
+  <div class="badge blue">For the Architect</div>
+  <h2>You built ADIs.</h2>
+  <p>URL-addressable identity with hierarchical key management.</p>
+  <p>But what anchors the ADI to the human?</p>
+  <p class="highlight">What happens when all the keys are compromised?</p>
+  <button class="btn" onclick="goTo(18)">Show me</button>
+</div>
+
+<!-- Screen 18: The Stack -->
+<div class="screen" id="screen18">
+  <h2>The Combined Stack</h2>
+  <div class="arch-diagram">
+    <div class="arch-layer accumulate">acc://paul.snow</div>
+    <div class="arch-arrow">↑ cryptographically bound to</div>
+    <div class="arch-layer deepglass">DeepGlass Attestation (PQC)</div>
+    <div class="arch-arrow">↑ derived from</div>
+    <div class="arch-layer bio">Genomic Markers (Biology)</div>
+    <div class="arch-arrow">↑ processed in</div>
+    <div class="arch-layer tee">TEE Constellation</div>
+  </div>
+  <p class="small">Accumulate provides the routing. DeepGlass provides the root.</p>
+  <button class="btn" onclick="goTo(19)">Continue</button>
+</div>
+
+<!-- Screen 19: Bio-Recovery -->
+<div class="screen" id="screen19">
+  <div class="badge teal">Bio-Recovery</div>
+  <h2>The key you can't lose.</h2>
+  <p>Lose your YubiKey? Lose your phone?</p>
+  <p class="highlight">Your biology is still yours.</p>
+  <div class="success-box">
+    <p class="white" style="font-size: 14px;">Re-attest with DeepGlass. Rotate your Key Book. No trusted parties required.</p>
+  </div>
+  <p class="small">Social recovery without the social.</p>
+  <button class="btn" onclick="goTo(20)">Continue</button>
+</div>
+
+<!-- Screen 20: The QR Demo -->
+<div class="screen" id="screen20">
+  <div class="badge amber">Live Attestation</div>
+  <h2>Proof on demand.</h2>
+  <div class="qr-container">
+    <div class="qr-code"></div>
+  </div>
+  <div class="countdown-bar">
+    <div class="countdown-fill" id="countdownFill"></div>
+  </div>
+  <p class="small">Expires in <span id="countdown">30</span> seconds</p>
+  <div class="entropy-bar" id="entropyBar"></div>
+  <div class="qr-meta">
+    <div>Nonce: <span id="sessionNonce">----</span></div>
+    <div>Time: <span id="qrTimestamp">--:--:--</span></div>
+  </div>
+  <button class="btn small" onclick="goTo(21)">Continue</button>
+</div>
+
+<!-- Screen 21: What Fails -->
+<div class="screen" id="screen21">
+  <h2>What doesn't work:</h2>
+  <div class="compare-table">
+    <div class="compare-row">
+      <div class="compare-cell old">Screenshot</div>
+      <div class="compare-cell old">Expired</div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-cell old">Photo of screen</div>
+      <div class="compare-cell old">Wrong nonce</div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-cell old">Deepfake video</div>
+      <div class="compare-cell old">No TEE quote</div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-cell old">Pre-generated</div>
+      <div class="compare-cell old">Timestamp fails</div>
+    </div>
+  </div>
+  <p class="highlight">Only live generation on attested hardware.</p>
+  <button class="btn" onclick="goTo(22)">Continue</button>
+</div>
+
+<!-- Screen 22: The Timeline -->
+<div class="screen" id="screen22">
+  <h2>The Quantum Timeline</h2>
+  <div class="timeline">
+    <div class="timeline-item">
+      <span class="timeline-year">2026</span>
+      <span class="timeline-event">DeepGlass deploys in Texas sandbox</span>
+    </div>
+    <div class="timeline-item">
+      <span class="timeline-year">2027</span>
+      <span class="timeline-event">Quantum sensing, QKD commercial</span>
+    </div>
+    <div class="timeline-item">
+      <span class="timeline-year">2030</span>
+      <span class="timeline-event">Quantum economy scales</span>
+    </div>
+    <div class="timeline-item future">
+      <span class="timeline-year">2034</span>
+      <span class="timeline-event">Q-Day — RSA breaks</span>
+    </div>
+  </div>
+  <p class="highlight">The opportunity arrives before the threat.</p>
+  <p class="small">We'll be using the docks before they build the hyper-ships.</p>
+  <button class="btn" onclick="goTo(23)">Continue</button>
+</div>
+
+<!-- Screen 23: The Problem You Know -->
+<div class="screen" id="screen23">
+  <h2>You've seen this before.</h2>
+  <p>Factom solved immutable records.</p>
+  <p>Accumulate solved identity-based addressing.</p>
+  <p class="highlight">But what anchors identity to biology?</p>
+  <p>What survives when all keys are compromised?</p>
+  <p>What's the recovery when there's no trusted party?</p>
+  <button class="btn" onclick="goTo(24)">Continue</button>
+</div>
+
+<!-- Screen 24: The Invitation -->
+<div class="screen" id="screen24">
+  <div class="rings">
+    <div class="ring outer"></div>
+    <div class="ring middle"></div>
+    <div class="ring inner"></div>
+  </div>
+  <h2>Paul,</h2>
+  <p>You built identity infrastructure for the blockchain era.</p>
+  <p class="highlight">We're building the biological anchor for the quantum era.</p>
+  <p>Same architectural insight. Different layer.</p>
+  <button class="btn gradient" onclick="goTo(25)">Tell me more</button>
+</div>
+
+<!-- Screen 25: Final -->
+<div class="screen" id="screen25">
+  <div class="logo">
+    <svg viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+    </svg>
+  </div>
+  <h1>DeepGlass</h1>
+  <p class="tagline">I am me and it agrees.</p>
+  <div class="success-box" style="text-align: left;">
+    <p class="white" style="font-size: 14px; margin-bottom: 8px;">The technical brief is ready.</p>
+    <p class="small" style="margin-bottom: 8px;">20 provisionals. 357 claims. 5 AI red teams passed.</p>
+    <p class="small" style="margin-bottom: 0;">The question: Is this architecture sound?</p>
+  </div>
+  <p style="margin-top: 24px;">Jerry Howe asked you to evaluate.</p>
+  <p class="highlight">We're asking you to build with us.</p>
+  <button class="btn text" onclick="reset()">Start Over</button>
+</div>
+
+<script>
+  let fakeName = '';
+  let typedName = '';
+  let countdownInterval;
+  let entropyInterval;
+  
+  function goTo(n) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen' + n).classList.add('active');
+    
+    if (n === 6) {
+      setTimeout(() => goTo(7), 2000);
+    }
+    if (n === 10) {
+      setTimeout(() => goTo(11), 2500);
+    }
+    if (n === 20) {
+      startQRDemo();
+    }
+  }
+  
+  function submitFake() {
+    fakeName = document.getElementById('fakeName').value || 'Anonymous';
+    document.getElementById('fakeNameDisplay').textContent = fakeName;
+    goTo(2);
+  }
+  
+  function submitReal() {
+    typedName = document.getElementById('typedName').value || 'Paul';
+    document.getElementById('typedNameDisplay').textContent = typedName;
+    goTo(6);
+  }
+  
+  function verify() {
+    goTo(10);
+  }
+  
+  function startQRDemo() {
+    let seconds = 30;
+    document.getElementById('countdown').textContent = seconds;
+    document.getElementById('countdownFill').style.width = '100%';
+    
+    generateNonce();
+    updateTimestamp();
+    initEntropyBar();
+    
+    countdownInterval = setInterval(() => {
+      seconds--;
+      document.getElementById('countdown').textContent = seconds;
+      document.getElementById('countdownFill').style.width = (seconds / 30 * 100) + '%';
+      updateTimestamp();
+      
+      if (seconds <= 0) {
+        clearInterval(countdownInterval);
+        seconds = 30;
+        generateNonce();
+        document.getElementById('countdown').textContent = seconds;
+        document.getElementById('countdownFill').style.width = '100%';
+        countdownInterval = setInterval(arguments.callee, 1000);
+      }
+    }, 1000);
+    
+    entropyInterval = setInterval(updateEntropy, 500);
+  }
+  
+  function initEntropyBar() {
+    const bar = document.getElementById('entropyBar');
+    bar.innerHTML = '';
+    for (let i = 0; i < 12; i++) {
+      const seg = document.createElement('div');
+      seg.className = 'entropy-segment';
+      seg.style.backgroundColor = getEntropyColor();
+      bar.appendChild(seg);
+    }
+  }
+  
+  function updateEntropy() {
+    const segments = document.querySelectorAll('.entropy-segment');
+    segments.forEach(seg => {
+      seg.style.backgroundColor = getEntropyColor();
+    });
+  }
+  
+  function getEntropyColor() {
+    const colors = ['#2dd4bf', '#3b82f6', '#8b5cf6', '#06b6d4', '#10b981'];
+    return colors[Math.floor(Math.random() * colors.length)];
+  }
+  
+  function updateTimestamp() {
+    const now = new Date();
+    const time = now.toLocaleTimeString('en-US', { hour12: false });
+    document.getElementById('qrTimestamp').textContent = time;
+  }
+  
+  function generateNonce() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let nonce = '';
+    for (let i = 0; i < 4; i++) {
+      nonce += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    document.getElementById('sessionNonce').textContent = nonce;
+  }
+  
+  function reset() {
+    fakeName = '';
+    typedName = '';
+    document.getElementById('fakeName').value = '';
+    document.getElementById('typedName').value = '';
+    clearInterval(countdownInterval);
+    clearInterval(entropyInterval);
+    goTo(0);
+  }
+</script>
+
+</body>
+</html>
