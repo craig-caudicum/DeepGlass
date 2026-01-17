@@ -1,0 +1,2359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Fluidity — DeepGlass</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Libre+Franklin:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-deep: #0a0a0f;
+      --bg-surface: #12121a;
+      --text-primary: #e8e6e3;
+      --text-secondary: #8a8a9a;
+      --text-muted: #5a5a6a;
+      --accent-teal: #2dd4bf;
+      --accent-gold: #d4a72d;
+      --accent-rose: #d42d5a;
+      --accent-green: #1DB954;
+      --glass-border: rgba(255,255,255,0.08);
+      --glass-glow: rgba(45,212,191,0.15);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Libre Franklin', sans-serif;
+      font-weight: 300;
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       ESSAY SECTIONS
+       ═══════════════════════════════════════════════════════════ */
+    
+    .section {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 80px 40px 120px;
+      position: relative;
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    .section.visible { opacity: 1; transform: translateY(0); }
+
+    .section-content { max-width: 680px; width: 100%; }
+
+    h1, h2, .display {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      letter-spacing: -0.02em;
+    }
+
+    .section-number {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      opacity: 0.6;
+    }
+
+    .song-indicator {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      font-family: 'Libre Franklin', sans-serif;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      opacity: 0.7;
+    }
+
+    .song-indicator .song-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .song-indicator .note { color: var(--accent-green); font-size: 1rem; }
+    .song-indicator .duration { color: var(--text-muted); opacity: 0.6; font-style: italic; }
+    .song-indicator .duration::before { content: "· yours for "; }
+
+    .song-indicator .contemplation {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.875rem;
+      font-style: italic;
+      color: var(--text-muted);
+      opacity: 0.5;
+      margin-top: 4px;
+    }
+
+    .section-title {
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      line-height: 1.1;
+      margin-bottom: 40px;
+      color: var(--text-primary);
+    }
+
+    .section-title em { font-style: italic; color: var(--accent-teal); }
+
+    p { font-size: 1.125rem; margin-bottom: 1.5em; color: var(--text-secondary); }
+    p:last-child { margin-bottom: 0; }
+
+    .highlight { color: var(--accent-teal); font-weight: 400; }
+    .gold { color: var(--accent-gold); }
+
+    blockquote {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem;
+      font-style: italic;
+      color: var(--text-primary);
+      border-left: 2px solid var(--accent-teal);
+      padding-left: 24px;
+      margin: 40px 0;
+    }
+
+    /* PRELUDE */
+    #prelude {
+      background: radial-gradient(ellipse at 50% 80%, rgba(45,212,191,0.08) 0%, transparent 60%), var(--bg-deep);
+    }
+
+    .prelude-content { text-align: center; }
+
+    .prelude-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(3rem, 8vw, 5.5rem);
+      font-weight: 300;
+      letter-spacing: -0.03em;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-teal) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .prelude-subtitle {
+      font-size: 1.125rem;
+      color: var(--text-muted);
+      margin-bottom: 60px;
+      font-style: italic;
+    }
+
+    .spotify-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 36px;
+      background: linear-gradient(135deg, #1DB954 0%, #1aa34a 100%);
+      border: none;
+      border-radius: 50px;
+      color: white;
+      font-family: 'Libre Franklin', sans-serif;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      box-shadow: 0 4px 24px rgba(29,185,84,0.3);
+    }
+
+    .spotify-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(29,185,84,0.4);
+    }
+
+    .spotify-btn svg { width: 24px; height: 24px; }
+
+    .prelude-hint {
+      margin-top: 40px;
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      opacity: 0.6;
+    }
+
+    .prelude-reassurance {
+      margin-top: 48px;
+      padding: 24px 32px;
+      border-left: 2px solid var(--accent-teal);
+      text-align: left;
+      max-width: 400px;
+    }
+
+    .prelude-reassurance p {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.125rem;
+      font-style: italic;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+
+    .prelude-reassurance p:last-child {
+      color: var(--accent-teal);
+      margin-bottom: 0;
+    }
+
+    /* BOTTOM NAV */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 24px 40px;
+      background: linear-gradient(to top, var(--bg-deep) 0%, transparent 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      z-index: 100;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.5s ease;
+      pointer-events: none;
+    }
+
+    .bottom-nav.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+    .nav-hint {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem;
+      font-style: italic;
+      color: var(--text-muted);
+    }
+
+    .nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      background: var(--glass-border);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      color: var(--text-secondary);
+      font-family: 'Libre Franklin', sans-serif;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .nav-btn:hover {
+      background: var(--glass-glow);
+      border-color: var(--accent-teal);
+      color: var(--accent-teal);
+    }
+
+    .nav-back { opacity: 0.6; }
+    .nav-back:hover { opacity: 1; }
+
+    /* SECTION III BACKGROUND */
+    #section-3 {
+      background: radial-gradient(ellipse at 30% 20%, rgba(212,167,45,0.06) 0%, transparent 50%),
+                  radial-gradient(ellipse at 70% 80%, rgba(45,212,191,0.06) 0%, transparent 50%),
+                  var(--bg-deep);
+    }
+
+    /* QUANTUM VISUAL */
+    .quantum-visual {
+      display: flex;
+      justify-content: center;
+      gap: 60px;
+      margin: 48px 0;
+      flex-wrap: wrap;
+    }
+
+    .quantum-state { text-align: center; }
+
+    .quantum-state .icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 16px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+    }
+
+    .superposition .icon {
+      background: linear-gradient(135deg, rgba(45,212,191,0.2), rgba(212,167,45,0.2));
+      border: 1px solid var(--glass-border);
+      animation: pulse-super 3s ease-in-out infinite;
+    }
+
+    .entanglement .icon {
+      background: linear-gradient(135deg, rgba(212,45,90,0.2), rgba(45,212,191,0.2));
+      border: 1px solid var(--glass-border);
+    }
+
+    .decoherence .icon {
+      background: rgba(212,45,90,0.15);
+      border: 1px dashed var(--accent-rose);
+    }
+
+    .quantum-state .label {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.125rem;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .quantum-state .desc {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      max-width: 140px;
+    }
+
+    @keyframes pulse-super {
+      0%, 100% { box-shadow: 0 0 20px rgba(45,212,191,0.2); }
+      50% { box-shadow: 0 0 40px rgba(45,212,191,0.4); }
+    }
+
+    .tech-note {
+      background: var(--bg-surface);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      padding: 24px;
+      margin-top: 40px;
+      font-size: 0.9375rem;
+    }
+
+    .tech-note .label {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--accent-teal);
+      margin-bottom: 12px;
+    }
+
+    /* CODA */
+    #coda {
+      background: radial-gradient(ellipse at 50% 50%, rgba(45,212,191,0.1) 0%, transparent 60%), var(--bg-deep);
+    }
+
+    .coda-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-style: italic;
+      text-align: center;
+      color: var(--text-primary);
+      margin-bottom: 60px;
+    }
+
+    .feel-it-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 20px 48px;
+      background: transparent;
+      border: 1px solid var(--accent-teal);
+      border-radius: 4px;
+      color: var(--accent-teal);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.25rem;
+      font-style: italic;
+      cursor: pointer;
+      transition: all 0.4s ease;
+    }
+
+    .feel-it-btn:hover {
+      background: var(--accent-teal);
+      color: var(--bg-deep);
+      box-shadow: 0 0 40px rgba(45,212,191,0.3);
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       PHONE DEMO SIMULATION
+       ═══════════════════════════════════════════════════════════ */
+    
+    #phone-demo {
+      display: none;
+      min-height: 100vh;
+      background: linear-gradient(to bottom, #0f172a, #1e293b);
+    }
+
+    #phone-demo.active { display: block; }
+
+    .demo-screen {
+      min-height: 100vh;
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 24px;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    .demo-screen.active { display: flex; opacity: 1; }
+
+    .demo-screen h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.75rem, 5vw, 2.5rem);
+      font-weight: 300;
+      margin-bottom: 16px;
+      color: white;
+    }
+
+    .demo-screen p {
+      color: #94a3b8;
+      font-size: 1rem;
+      max-width: 320px;
+      margin-bottom: 24px;
+    }
+
+    .demo-screen .white { color: white; }
+    .demo-screen .teal { color: var(--accent-teal); }
+    .demo-screen .gold { color: var(--accent-gold); }
+    .demo-screen .rose { color: var(--accent-rose); }
+
+    /* INPUT STYLES */
+    .demo-input {
+      width: 100%;
+      max-width: 300px;
+      padding: 16px 20px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      color: white;
+      font-family: 'Libre Franklin', sans-serif;
+      font-size: 1.125rem;
+      text-align: center;
+      margin-bottom: 24px;
+      transition: all 0.3s ease;
+    }
+
+    .demo-input:focus {
+      outline: none;
+      border-color: var(--accent-teal);
+      box-shadow: 0 0 20px rgba(45,212,191,0.2);
+    }
+
+    .demo-input::placeholder { color: #64748b; }
+
+    .demo-btn {
+      padding: 14px 32px;
+      background: var(--accent-teal);
+      border: none;
+      border-radius: 12px;
+      color: #0f172a;
+      font-family: 'Libre Franklin', sans-serif;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .demo-btn:hover { transform: scale(1.02); box-shadow: 0 8px 24px rgba(45,212,191,0.3); }
+    .demo-btn:active { transform: scale(0.98); }
+    .demo-btn.ghost {
+      background: transparent;
+      border: 1px solid var(--accent-teal);
+      color: var(--accent-teal);
+    }
+
+    /* RECOGNITION BOX */
+    .recognition-box {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 300px;
+      margin: 24px 0;
+      text-align: left;
+    }
+
+    .recognition-box .label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent-teal);
+      margin-bottom: 16px;
+    }
+
+    .recognition-box .name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.75rem;
+      color: white;
+      margin-bottom: 8px;
+    }
+
+    .recognition-box .detail {
+      font-size: 0.875rem;
+      color: #94a3b8;
+    }
+
+    /* Identity Recognition */
+    .recognition-header, .records-header {
+      font-size: 0.6875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #64748b;
+      margin-bottom: 12px;
+    }
+
+    .variant-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .variant {
+      font-size: 0.875rem;
+      color: #94a3b8;
+      padding: 6px 10px;
+      background: rgba(255,255,255,0.02);
+      border-radius: 6px;
+      text-decoration: line-through;
+      opacity: 0.6;
+    }
+
+    .resolution {
+      text-align: center;
+      padding: 12px 0;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      margin-bottom: 16px;
+    }
+
+    .resolution .arrow {
+      display: block;
+      color: var(--accent-teal);
+      font-size: 1.25rem;
+      margin-bottom: 8px;
+    }
+
+    .resolved {
+      font-size: 0.875rem;
+      color: white;
+    }
+
+    .records-found { margin-top: 12px; }
+
+    .record {
+      font-size: 0.8125rem;
+      color: #94a3b8;
+      margin-bottom: 4px;
+    }
+
+    .record.gold { color: var(--accent-gold); margin-top: 8px; }
+
+    /* Declaration Screen */
+    .badge-small {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.6875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 16px;
+    }
+
+    .badge-small.teal {
+      background: rgba(45,212,191,0.15);
+      color: var(--accent-teal);
+      border: 1px solid var(--accent-teal);
+    }
+
+    .name-choices {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin: 24px 0;
+      width: 100%;
+      max-width: 280px;
+    }
+
+    .name-choice {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .name-choice:hover {
+      background: rgba(45,212,191,0.1);
+      border-color: var(--accent-teal);
+    }
+
+    .name-choice input[type="radio"] {
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border: 2px solid #64748b;
+      border-radius: 50%;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .name-choice input[type="radio"]:checked {
+      border-color: var(--accent-teal);
+      background: var(--accent-teal);
+      box-shadow: inset 0 0 0 3px var(--bg-dark);
+    }
+
+    .name-choice span {
+      color: white;
+      font-size: 0.9375rem;
+    }
+
+    .attest-btn {
+      background: linear-gradient(135deg, var(--accent-teal), #3b82f6) !important;
+      font-size: 1.125rem !important;
+      padding: 16px 48px !important;
+    }
+
+    /* Attestation Confirmed */
+    .attest-confirmed { text-align: center; }
+
+    .attest-check {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-teal), #3b82f6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      color: white;
+      margin: 0 auto 24px;
+    }
+
+    .attested-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem;
+      color: var(--accent-teal);
+      margin: 16px 0;
+    }
+
+    .attest-tagline {
+      color: #94a3b8;
+      font-size: 0.9375rem;
+      font-style: italic;
+    }
+
+    /* QR DEMO */
+    .qr-container {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      margin: 24px 0;
+      position: relative;
+    }
+
+    .qr-placeholder {
+      width: 180px;
+      height: 180px;
+      background: linear-gradient(45deg, #1a1a2e 25%, transparent 25%),
+                  linear-gradient(-45deg, #1a1a2e 25%, transparent 25%),
+                  linear-gradient(45deg, transparent 75%, #1a1a2e 75%),
+                  linear-gradient(-45deg, transparent 75%, #1a1a2e 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+      border-radius: 8px;
+      margin: 0 auto;
+      animation: qr-flicker 0.3s infinite;
+    }
+
+    @keyframes qr-flicker {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.95; }
+    }
+
+    .countdown-ring {
+      width: 200px;
+      height: 200px;
+      position: relative;
+      margin: 24px auto;
+    }
+
+    .countdown-ring svg {
+      transform: rotate(-90deg);
+      width: 100%;
+      height: 100%;
+    }
+
+    .countdown-ring .bg {
+      fill: none;
+      stroke: rgba(255,255,255,0.1);
+      stroke-width: 8;
+    }
+
+    .countdown-ring .progress {
+      fill: none;
+      stroke: var(--accent-teal);
+      stroke-width: 8;
+      stroke-linecap: round;
+      stroke-dasharray: 565.48;
+      stroke-dashoffset: 0;
+      transition: stroke-dashoffset 1s linear, stroke 0.3s ease;
+    }
+
+    .countdown-ring .progress.warning { stroke: var(--accent-gold); }
+    .countdown-ring .progress.danger { stroke: var(--accent-rose); }
+
+    .countdown-number {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 3rem;
+      color: white;
+    }
+
+    /* ENTROPY BAR */
+    .entropy-bar {
+      display: flex;
+      gap: 3px;
+      justify-content: center;
+      margin: 16px 0;
+    }
+
+    .entropy-segment {
+      width: 12px;
+      height: 24px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 2px;
+      transition: background 0.1s ease;
+    }
+
+    .entropy-segment.active { background: var(--accent-teal); }
+
+    .session-info {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-top: 16px;
+      font-family: monospace;
+      font-size: 0.875rem;
+      color: #64748b;
+    }
+
+    .session-info span { color: var(--accent-teal); }
+
+    /* CONSTELLATION */
+    .constellation-container {
+      width: 100%;
+      max-width: 350px;
+      height: 300px;
+      margin: 24px auto;
+    }
+
+    .constellation-svg { width: 100%; height: 100%; }
+
+    .node { transition: all 0.3s ease; }
+    .node-center { fill: var(--accent-teal); }
+    .node-family { fill: var(--accent-gold); }
+    .node-extended { fill: var(--text-muted); }
+    .node-memorial { 
+      fill: none; 
+      stroke: var(--accent-gold); 
+      stroke-width: 2;
+      stroke-dasharray: 4 2;
+    }
+    .node-founder { fill: var(--accent-teal); opacity: 0.7; }
+
+    .memorial-label { fill: var(--accent-gold) !important; font-size: 10px !important; }
+    .memorial-sublabel { fill: #64748b !important; font-size: 7px !important; font-style: italic; }
+
+    .connection {
+      stroke: rgba(255,255,255,0.2);
+      stroke-width: 1;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    .connection.visible { opacity: 1; }
+
+    .node-label {
+      font-family: 'Libre Franklin', sans-serif;
+      font-size: 9px;
+      fill: #94a3b8;
+    }
+
+    /* FINAL CLOSE */
+    .final-statement {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem, 6vw, 3rem);
+      font-weight: 300;
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    .final-statement .line1 { color: white; display: block; margin-bottom: 8px; }
+    .final-statement .line2 { color: var(--accent-teal); font-style: italic; display: block; }
+
+    .final-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem;
+      color: var(--accent-gold);
+      margin-top: 40px;
+      opacity: 0;
+      animation: fadeInUp 1s ease 0.5s forwards;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* CHOICE BUTTONS */
+    .choice-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 48px;
+      width: 100%;
+      max-width: 280px;
+    }
+
+    .choice-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 20px;
+      border-radius: 12px;
+      font-family: 'Libre Franklin', sans-serif;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 1px solid transparent;
+    }
+
+    .choice-btn .choice-icon {
+      font-size: 1.25rem;
+      width: 28px;
+      text-align: center;
+    }
+
+    .choice-btn .choice-label { flex: 1; text-align: left; }
+
+    .choice-btn.primary {
+      background: var(--accent-teal);
+      color: #0f172a;
+      border-color: var(--accent-teal);
+    }
+
+    .choice-btn.primary:hover {
+      background: #5eead4;
+      box-shadow: 0 8px 24px rgba(45,212,191,0.3);
+    }
+
+    .choice-btn.secondary {
+      background: transparent;
+      color: var(--accent-teal);
+      border-color: var(--accent-teal);
+    }
+
+    .choice-btn.secondary:hover {
+      background: rgba(45,212,191,0.1);
+    }
+
+    .choice-btn.tertiary {
+      background: transparent;
+      color: #94a3b8;
+      border-color: rgba(255,255,255,0.2);
+    }
+
+    .choice-btn.tertiary:hover {
+      border-color: rgba(255,255,255,0.4);
+      color: white;
+    }
+
+    /* DEEPER LIST */
+    .deeper-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 24px;
+      text-align: left;
+      max-width: 320px;
+    }
+
+    .deeper-item {
+      display: flex;
+      gap: 16px;
+      padding: 16px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .deeper-icon { font-size: 1.5rem; }
+
+    .deeper-item strong {
+      color: white;
+      font-size: 0.9375rem;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .deeper-item p {
+      color: #94a3b8;
+      font-size: 0.8125rem;
+      margin: 0;
+      line-height: 1.4;
+    }
+
+    /* FINAL LOGO */
+    .final-logo {
+      animation: logoGlow 3s ease-in-out infinite;
+    }
+
+    @keyframes logoGlow {
+      0%, 100% { filter: drop-shadow(0 0 20px rgba(45,212,191,0.3)); }
+      50% { filter: drop-shadow(0 0 40px rgba(45,212,191,0.6)); }
+    }
+
+    /* SHARE SECTION */
+    .share-section {
+      margin-top: 40px;
+      text-align: center;
+    }
+
+    .share-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 28px;
+      background: linear-gradient(135deg, var(--accent-teal), #3b82f6);
+      border: none;
+      border-radius: 50px;
+      color: white;
+      font-family: 'Libre Franklin', sans-serif;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 20px rgba(45,212,191,0.3);
+    }
+
+    .share-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(45,212,191,0.4);
+    }
+
+    .share-btn:active { transform: scale(0.98); }
+
+    /* JERRY'S FRICTIONLESS DAY */
+    .day-timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+      max-width: 320px;
+      margin: 24px 0;
+    }
+
+    .day-event {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .day-event:hover {
+      background: rgba(45,212,191,0.1);
+      border-color: var(--accent-teal);
+    }
+
+    .day-event.completed {
+      border-color: var(--accent-teal);
+      background: rgba(45,212,191,0.05);
+    }
+
+    .day-event .time {
+      font-size: 0.75rem;
+      color: #64748b;
+      min-width: 60px;
+    }
+
+    .day-event .event-icon { font-size: 1.5rem; }
+
+    .day-event .event-content { flex: 1; text-align: left; }
+
+    .day-event .event-title {
+      color: white;
+      font-weight: 500;
+      font-size: 0.9375rem;
+    }
+
+    .day-event .event-status {
+      font-size: 0.75rem;
+      color: #64748b;
+      margin-top: 2px;
+    }
+
+    .day-event.completed .event-status { color: var(--accent-teal); }
+
+    .day-stats {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      margin: 24px 0;
+      padding: 16px;
+      background: rgba(255,255,255,0.02);
+      border-radius: 12px;
+    }
+
+    .day-stat { text-align: center; }
+
+    .day-stat .stat-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem;
+      color: var(--accent-teal);
+    }
+
+    .day-stat .stat-label {
+      font-size: 0.75rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* STORY SCREENS */
+    .story-header {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent-gold);
+      margin-bottom: 16px;
+    }
+
+    .story-attestation {
+      background: rgba(45,212,191,0.1);
+      border: 1px solid var(--accent-teal);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 24px 0;
+      text-align: left;
+      max-width: 320px;
+    }
+
+    .story-attestation .attest-label {
+      font-size: 0.6875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent-teal);
+      margin-bottom: 12px;
+    }
+
+    .story-attestation .attest-item {
+      font-size: 0.875rem;
+      color: white;
+      margin-bottom: 6px;
+    }
+
+    .story-attestation .attest-note {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 0.9375rem;
+      color: #94a3b8;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    /* JERRY CLOSE */
+    .jerry-close {
+      text-align: left;
+      max-width: 320px;
+      margin: 24px 0;
+      padding: 24px;
+      border-left: 2px solid var(--accent-teal);
+    }
+
+    .jerry-close p {
+      font-size: 0.9375rem;
+      margin-bottom: 12px;
+    }
+
+    /* SCIF REVEAL */
+    .scif-reveal {
+      text-align: center;
+      max-width: 320px;
+      margin: 24px 0;
+    }
+
+    .scif-reveal p {
+      font-size: 0.9375rem;
+      margin-bottom: 12px;
+    }
+
+    /* FOUNDING FATHERS */
+    .founding-fathers {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+      max-width: 320px;
+      margin: 24px 0;
+    }
+
+    .founder-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 16px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      text-align: left;
+    }
+
+    .founder-row.highlight {
+      background: rgba(45,212,191,0.1);
+      border-color: var(--accent-teal);
+    }
+
+    .founder-row.memorial {
+      background: rgba(212,167,45,0.05);
+      border-color: rgba(212,167,45,0.3);
+      border-style: dashed;
+    }
+
+    .founder-row .seq {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.25rem;
+      color: var(--accent-teal);
+      min-width: 40px;
+    }
+
+    .founder-row.memorial .seq {
+      color: var(--accent-gold);
+    }
+
+    .founder-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .founder-name {
+      color: white;
+      font-weight: 500;
+      font-size: 0.9375rem;
+    }
+
+    .founder-role {
+      color: #94a3b8;
+      font-size: 0.75rem;
+    }
+
+    .founder-note {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      color: #64748b;
+      font-size: 0.8125rem;
+      margin-top: 4px;
+    }
+
+    .legacy-statement {
+      margin-top: 32px;
+      padding: 24px;
+      border-left: 2px solid var(--accent-gold);
+      text-align: left;
+      max-width: 280px;
+    }
+
+    .legacy-statement p {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .section { padding: 60px 24px 100px; }
+      .quantum-visual { gap: 32px; }
+      .bottom-nav { padding: 16px 24px; flex-direction: column; gap: 12px; }
+      .nav-hint { font-size: 0.875rem; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       PRELUDE
+       ═══════════════════════════════════════════════════════════ -->
+  <section class="section visible" id="prelude">
+    <div class="prelude-content">
+      <h1 class="prelude-title">Fluidity</h1>
+      <p class="prelude-subtitle">A meditation on identity in the age of dissolution</p>
+      
+      <a href="https://open.spotify.com/playlist/1bbh7ffIIYawSgSupkAGdx" target="_blank" class="spotify-btn" id="startBtn">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+        </svg>
+        Start Spotify Playlist
+      </a>
+      
+      <p class="prelude-hint">Opens in new tab. Return here. Let the music guide you.</p>
+      
+      <div class="prelude-reassurance">
+        <p>If you get lost in the big thinking, it's easy to find your way back.</p>
+        <p>Use the flow. Use the time. This really is consequential.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- I. THE CURRENT -->
+  <section class="section" id="section-1">
+    <div class="section-content">
+      <div class="section-number">I</div>
+      <div class="song-indicator">
+        <div class="song-line"><span class="note">♫</span> Silence Speaks — GoGo Penguin <span class="duration">3:08</span></div>
+        <div class="contemplation">Let the song finish. Re-read. Jot a thought. Don't rush the deep.</div>
+      </div>
+      <h2 class="section-title">The <em>Current</em></h2>
+      
+      <p>There is a moment, standing at the edge of moving water, when you feel the pull before you step in.</p>
+      <p>The current doesn't ask permission. It simply <span class="highlight">flows</span>.</p>
+      <p>Identity used to be like that — a river you were born into, carrying you from source to sea. Your name was your father's name. Your village knew your grandmother. The current held you.</p>
+      <p>Now the banks have dissolved. The water scatters into a thousand digital channels, each claiming to be the main stream. Each asking: <em>Who are you? Prove it. Again.</em></p>
+      <blockquote>"The current still flows. We've just forgotten how to find it."</blockquote>
+    </div>
+  </section>
+
+  <!-- II. THE CHANNEL -->
+  <section class="section" id="section-2">
+    <div class="section-content">
+      <div class="section-number">II</div>
+      <div class="song-indicator">
+        <div class="song-line"><span class="note">♫</span> Murmuration — GoGo Penguin <span class="duration">4:12</span></div>
+        <div class="contemplation">Use the time. Contemplate what we're saying. The song holds the space.</div>
+      </div>
+      <h2 class="section-title">The <em>Channel</em></h2>
+      
+      <p>Every great civilization understood that <span class="highlight">channels</span> create civilization itself.</p>
+      <p>The Nile's annual flood. The Grand Canal threading China together. The aqueducts of Rome. Water, directed with intention, transforms wilderness into garden.</p>
+      <p>The channel is not the water. The channel is the <em>shape</em> that lets water become something more than chaos.</p>
+      <p>Our digital age has water everywhere — data flooding every surface, identity splashing across a thousand platforms. What we lack is the channel.</p>
+      <p>A shape that says: <em>this is the true stream. This is where the current runs clean.</em></p>
+    </div>
+  </section>
+
+  <!-- III. ATOMISED -->
+  <section class="section" id="section-3">
+    <div class="section-content">
+      <div class="section-number">III</div>
+      <div class="song-indicator">
+        <div class="song-line"><span class="note">♫</span> Atomised — GoGo Penguin <span class="duration">4:23</span></div>
+        <div class="contemplation">Four minutes to sit with the quantum. Let it land before you move.</div>
+      </div>
+      <h2 class="section-title"><em>Atomised</em></h2>
+      
+      <p>The old certainties have collapsed into probability clouds.</p>
+      <p>In the quantum world, a particle exists in <span class="highlight">superposition</span> — simultaneously here and there, this and that — until observation forces it to choose. The act of measurement creates the reality.</p>
+      
+      <div class="quantum-visual">
+        <div class="quantum-state superposition">
+          <div class="icon">∿</div>
+          <div class="label">Superposition</div>
+          <div class="desc">Multiple states held in potential</div>
+        </div>
+        <div class="quantum-state entanglement">
+          <div class="icon">⧓</div>
+          <div class="label">Entanglement</div>
+          <div class="desc">Fates bound across distance</div>
+        </div>
+        <div class="quantum-state decoherence">
+          <div class="icon">◇</div>
+          <div class="label">Decoherence</div>
+          <div class="desc">The threat: dissolution into noise</div>
+        </div>
+      </div>
+      
+      <p>Identity in our age faces the same physics. You exist in superposition across platforms — a LinkedIn self, an Instagram self, a government-records self. Each observation (each login, each verification) forces a temporary collapse into one version.</p>
+      <p>But here's what the quantum metaphor reveals: <span class="highlight">decoherence</span> is the enemy. When a quantum system loses coherence, information scatters into noise. Irretrievably.</p>
+      <p>The same happens to identity without an anchor. The signal becomes noise. The self becomes <em>selves</em>, then static.</p>
+      
+      <div class="tech-note">
+        <div class="label">For the technically literate</div>
+        <p>This is not metaphor alone. Post-quantum cryptography exists because quantum computers will shatter current encryption — including the encryption protecting your identity. The 2048-bit RSA keys securing your bank, your records, your <em>you</em>? Vulnerable to Shor's algorithm running on sufficient qubits. The transition to quantum-resistant systems isn't optional. It's thermodynamics.</p>
+        <p style="margin-top: 12px; color: var(--accent-gold);">Seven years at Leidos showed you the credential gap. This is how we close it.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- IV. THE CONFLUENCE -->
+  <section class="section" id="section-4">
+    <div class="section-content">
+      <div class="section-number">IV</div>
+      <div class="song-indicator">
+        <div class="song-line"><span class="note">♫</span> Hopopono — GoGo Penguin <span class="duration">3:56</span></div>
+        <div class="contemplation">Think about your own confluence. Who made you possible?</div>
+      </div>
+      <h2 class="section-title">The <em>Confluence</em></h2>
+      
+      <p>Rivers don't run alone.</p>
+      <p>The Missouri meets the Mississippi. The Ganges absorbs a hundred tributaries. At each confluence, the waters test each other — temperature, sediment, speed — before becoming one stream, stronger than either source.</p>
+      <p>This is how trust actually works. Not as a single credential, but as a <span class="highlight">confluence</span> of attestations. Your mother's eyes. Your father's chin. The genetic echo of grandparents you never met. Biology as trust architecture.</p>
+      <p>No document can replicate this. No algorithm can forge a family network that doesn't exist. The confluence <em>is</em> the verification.</p>
+      <blockquote>"I am the confluence of everyone who made me possible."</blockquote>
+    </div>
+  </section>
+
+  <!-- V. GLASS -->
+  <section class="section" id="section-5">
+    <div class="section-content">
+      <div class="section-number">V</div>
+      <div class="song-indicator">
+        <div class="song-line"><span class="note">♫</span> So It Begins — GoGo Penguin <span class="duration">4:01</span></div>
+        <div class="contemplation">Strength through transparency. Let that settle.</div>
+      </div>
+      <h2 class="section-title"><em>Glass</em></h2>
+      
+      <p>Glass is transparent. Glass is fragile. These are the words we reach for.</p>
+      <p>But glass is also <span class="highlight">structural</span>. The glass towers of our cities hold against hurricane winds. Fiber-optic glass carries the weight of human civilization's communication — every trade, every call, every verification — at the speed of light.</p>
+      <p>The strength of glass lies not in resistance but in <em>coherence</em>. Every molecule aligned. No hidden fractures. Stress distributed across the whole.</p>
+      <p>A network can be glass. Transparent: everyone sees the structure. Resilient: stress on one node distributes across thousands. Self-healing: break one connection, others route around it.</p>
+      <p>This is what identity infrastructure could be. Not a vault. Not a wall. A <span class="highlight">glass lattice</span> strong enough to hold because nothing is hidden.</p>
+    </div>
+  </section>
+
+  <!-- VI. THE LEDGER -->
+  <section class="section" id="section-6">
+    <div class="section-content">
+      <div class="section-number">VI</div>
+      <div class="song-indicator">
+        <div class="song-line"><span class="note">♫</span> Kora — GoGo Penguin <span class="duration">4:18</span></div>
+        <div class="contemplation">Memory made durable. What would you want recorded?</div>
+      </div>
+      <h2 class="section-title">The <em>Ledger</em></h2>
+      
+      <p>Before there were databases, there were ledgers.</p>
+      <p>The word itself comes from <em>leggen</em> — to lay down. Something placed. Something that stays. The merchant's ledger recorded not just transactions but <em>relationships</em>. Who owed whom. Who stood behind which promise.</p>
+      <p>A ledger is memory made <span class="highlight">durable</span>.</p>
+      <p>The ancient Romans kept their records on wax tablets — <em>codex</em>, plural <em>caudices</em>. The blockhead's ledger. Simple, erasable, human. And yet from this humble wax came the concept that would become the book, the database, the blockchain.</p>
+      <p>Every identity system is, at root, a ledger. The question is only: <em>What gets recorded? Who can write? How long does it last?</em></p>
+    </div>
+  </section>
+
+  <!-- VII. DEEP -->
+  <section class="section" id="section-7">
+    <div class="section-content">
+      <div class="section-number">VII</div>
+      <div class="song-indicator">
+        <div class="song-line"><span class="note">♫</span> Ocean In A Drop — GoGo Penguin <span class="duration">4:19</span></div>
+        <div class="contemplation">The deep current. Ancestors. Descendants. You, in between.</div>
+      </div>
+      <h2 class="section-title"><em>Deep</em></h2>
+      
+      <p>Below the surface current runs another flow.</p>
+      <p>Oceanographers call it the <span class="highlight">thermohaline circulation</span> — the deep current driven by temperature and salt, moving slowly beneath the waves we see. It takes a thousand years for water to complete the circuit. But it regulates the climate of the entire planet.</p>
+      <p>Surface identity changes constantly. Your email changes. Your address changes. Your name, even, might change. But beneath it runs something deeper. The genetic current. The biological flow that connects you to ancestors a thousand years gone and descendants not yet born.</p>
+      <p>This is what we mean by <em>deep</em>. Not just secure. Not just verified. <span class="gold">Anchored to something that outlasts any single lifetime.</span></p>
+      <blockquote>"The deep current doesn't care what you call yourself. It knows what you are."</blockquote>
+    </div>
+  </section>
+
+  <!-- CODA -->
+  <section class="section" id="coda">
+    <div class="section-content" style="text-align: center;">
+      <div class="section-number">Coda</div>
+      <div class="song-indicator" style="justify-content: center; align-items: center;">
+        <div class="song-line"><span class="note">♫</span> Window — GoGo Penguin <span class="duration">5:21</span></div>
+        <div class="contemplation">Five minutes. The longest song. You've earned this space.</div>
+      </div>
+      
+      <p class="coda-text">Keep flowing.</p>
+      
+      <p style="margin-bottom: 60px;">The music continues. Your Spotify still plays.<br>But now...</p>
+      
+      <button class="feel-it-btn" id="feelItBtn">Now feel it →</button>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       PHONE DEMO
+       ═══════════════════════════════════════════════════════════ -->
+  <div id="phone-demo">
+    
+    <!-- Screen 0: The First Lie -->
+    <div class="demo-screen active" id="demo-0">
+      <h2>The first lie is free.</h2>
+      <p>Type any name. Any identity you want.</p>
+      <p class="teal">The system will believe you.</p>
+      
+      <input type="text" class="demo-input" id="fakeName" placeholder="Type any name...">
+      <button class="demo-btn" onclick="submitFakeName()">Submit</button>
+    </div>
+    
+    <!-- Screen 1: The Acceptance -->
+    <div class="demo-screen" id="demo-1">
+      <h2>Welcome, <span class="teal" id="fakeNameDisplay"></span></h2>
+      <p>The system believed you.</p>
+      <p>No biometric. No challenge. No verification.</p>
+      <p class="white">This is how identity works today.</p>
+      
+      <button class="demo-btn ghost" onclick="goToDemo(2)">Continue</button>
+    </div>
+    
+    <!-- Screen 2: The Inversion -->
+    <div class="demo-screen" id="demo-2">
+      <h2>Now imagine the inverse.</h2>
+      <p>The institution says:</p>
+      <p class="white" style="font-size: 1.25rem;">"This is <span class="teal" id="fakeNameDisplay2"></span>"</p>
+      <p>And you have no way to prove otherwise.</p>
+      <p class="rose">This is identity theft. This is synthetic fraud. This is the credential gap.</p>
+      
+      <button class="demo-btn ghost" onclick="goToDemo(3)">Show me the solution</button>
+    </div>
+    
+    <!-- Screen 3: The Real Declaration -->
+    <div class="demo-screen" id="demo-3">
+      <h2>Now declare yourself.</h2>
+      <p>Not to prove. Just to speak.</p>
+      <p>The channel receives before it verifies.</p>
+      
+      <input type="text" class="demo-input" id="realName" placeholder="Your real name..." value="Jerry Howe">
+      <button class="demo-btn" onclick="submitRealName()">Declare</button>
+    </div>
+    
+    <!-- Screen 4: Processing -->
+    <div class="demo-screen" id="demo-4">
+      <div style="width: 60px; height: 60px; border: 3px solid var(--accent-teal); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 24px;"></div>
+      <p class="teal">Anchoring to biology...</p>
+      <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+    </div>
+    
+    <!-- Screen 5: Recognition -->
+    <div class="demo-screen" id="demo-5">
+      <h2>Searching...</h2>
+      <p>DeepGlass scans for identity records.</p>
+      
+      <div class="recognition-box">
+        <div class="recognition-header">IDENTITY VARIANTS FOUND:</div>
+        <div class="variant-list">
+          <div class="variant">Gerald S. Howe Jr.</div>
+          <div class="variant">Jerold Howe</div>
+          <div class="variant">Gerry Howe</div>
+          <div class="variant">Jerry Howe</div>
+        </div>
+        <div class="resolution">
+          <span class="arrow">↓</span>
+          <span class="resolved">Resolved to: <span class="teal">Jerald S. Howe, Jr.</span></span>
+        </div>
+        
+        <div class="records-found">
+          <div class="records-header">PUBLIC RECORDS:</div>
+          <div class="record">• Princeton '78 → Oxford (Sachs) → Harvard Law</div>
+          <div class="record">• Former EVP & General Counsel, Leidos</div>
+          <div class="record">• Co-founder & Treasurer, No Labels</div>
+          <div class="record">• Moderator, Aspen Institute</div>
+          <div class="record">• Vice-Chair, INSA Legal Roundtable</div>
+          <div class="record gold">• Chairman, DeepGlass Corporation</div>
+        </div>
+      </div>
+      
+      <button class="demo-btn" onclick="goToDemo('5b')">Continue</button>
+    </div>
+    
+    <!-- Screen 5b: Declaration - Choose Preferred Identity -->
+    <div class="demo-screen" id="demo-5b">
+      <div class="badge-small teal">BIOLOGICAL ANCHOR CONFIRMED</div>
+      <h2>Now declare yourself.</h2>
+      <p>Your biology is the anchor.<br>Your name is your choice.</p>
+      
+      <p style="color: #94a3b8; font-size: 0.875rem; margin-top: 16px;">How do you want to be known?</p>
+      
+      <div class="name-choices">
+        <label class="name-choice">
+          <input type="radio" name="preferredName" value="Jerald S. Howe, Jr." onclick="enableAttest()">
+          <span>Jerald S. Howe, Jr.</span>
+        </label>
+        <label class="name-choice">
+          <input type="radio" name="preferredName" value="Jerry Howe" onclick="enableAttest()">
+          <span>Jerry Howe</span>
+        </label>
+        <label class="name-choice">
+          <input type="radio" name="preferredName" value="Gerald S. Howe Jr." onclick="enableAttest()">
+          <span>Gerald S. Howe Jr.</span>
+        </label>
+      </div>
+      
+      <button class="demo-btn attest-btn" id="attestBtn" onclick="doAttest()" style="opacity: 0.3; pointer-events: none;">
+        I am me.
+      </button>
+    </div>
+    
+    <!-- Screen 5c: Attestation Confirmed -->
+    <div class="demo-screen" id="demo-5c">
+      <div class="attest-confirmed">
+        <div class="attest-check">✓</div>
+        <h2>Attested.</h2>
+        <p class="attested-name" id="attestedName">Jerald S. Howe, Jr.</p>
+        <p class="attest-tagline">A trusted attestation,<br>certified by biological you.</p>
+      </div>
+      
+      <p class="white" style="margin-top: 24px; font-style: italic;">"I am me and it agrees."</p>
+      
+      <button class="demo-btn" onclick="goToDemo(6)">Generate QR attestation</button>
+    </div>
+    
+    <!-- Screen 6: QR Generation -->
+    <div class="demo-screen" id="demo-6">
+      <h2>Your attestation.</h2>
+      <p>Valid for 30 seconds. Then it dies.</p>
+      
+      <div class="countdown-ring">
+        <svg viewBox="0 0 200 200">
+          <circle class="bg" cx="100" cy="100" r="90"/>
+          <circle class="progress" id="progressRing" cx="100" cy="100" r="90"/>
+        </svg>
+        <div class="countdown-number" id="countdownNum">30</div>
+      </div>
+      
+      <div class="qr-container">
+        <div class="qr-placeholder"></div>
+      </div>
+      
+      <div class="entropy-bar" id="entropyBar"></div>
+      
+      <div class="session-info">
+        <div>NONCE: <span id="sessionNonce">—</span></div>
+        <div>TIME: <span id="qrTimestamp">—</span></div>
+      </div>
+      
+      <p style="margin-top: 24px; font-size: 0.875rem;">Screenshots don't work. Photos don't work.<br>The entropy changes. The nonce expires.</p>
+      
+      <button class="demo-btn ghost" style="margin-top: 24px;" onclick="goToDemo(7)">Continue</button>
+    </div>
+    
+    <!-- Screen 7: The Constellation with Chris -->
+    <div class="demo-screen" id="demo-7">
+      <h2>You are not alone.</h2>
+      <p>Your constellation forms around you.</p>
+      
+      <div class="constellation-container">
+        <svg class="constellation-svg" viewBox="0 0 350 300">
+          <!-- Connections -->
+          <line class="connection" id="c1" x1="175" y1="150" x2="100" y2="70"/>
+          <line class="connection" id="c2" x1="175" y1="150" x2="250" y2="70"/>
+          <line class="connection" id="c3" x1="175" y1="150" x2="60" y2="180"/>
+          <line class="connection" id="c4" x1="175" y1="150" x2="290" y2="180"/>
+          <line class="connection" id="c5" x1="100" y1="70" x2="175" y2="70"/>
+          
+          <!-- Extended nodes -->
+          <circle class="node node-extended" cx="60" cy="180" r="6"/>
+          <circle class="node node-extended" cx="290" cy="180" r="6"/>
+          
+          <!-- Family nodes -->
+          <circle class="node node-family" cx="100" cy="70" r="10"/>
+          <circle class="node node-family" cx="250" cy="70" r="10"/>
+          
+          <!-- Chris node - special memorial styling -->
+          <circle class="node node-memorial" cx="175" cy="70" r="10" id="chrisNode"/>
+          
+          <!-- Labels -->
+          <text class="node-label" x="100" y="55" text-anchor="middle">Parent</text>
+          <text class="node-label" x="250" y="55" text-anchor="middle">Parent</text>
+          <text class="node-label memorial-label" x="175" y="55" text-anchor="middle" id="chrisLabel">CHRIS</text>
+          <text class="node-label memorial-sublabel" x="175" y="95" text-anchor="middle">In Memoriam</text>
+          
+          <!-- Center node - Jerry -->
+          <circle class="node node-center" cx="175" cy="150" r="14" id="centerNode"/>
+          <text class="node-label" x="175" y="175" text-anchor="middle" id="centerLabel" style="font-size: 10px; fill: var(--accent-teal);">JERRY</text>
+          <text class="node-label" x="175" y="188" text-anchor="middle" style="font-size: 8px; fill: #64748b;">001</text>
+          
+          <!-- Craig node at bottom -->
+          <circle class="node node-founder" cx="175" cy="240" r="8"/>
+          <text class="node-label" x="175" y="260" text-anchor="middle" style="font-size: 8px;">CRAIG · 000</text>
+          <line class="connection" id="c6" x1="175" y1="150" x2="175" y2="232"/>
+        </svg>
+      </div>
+      
+      <p style="font-size: 0.875rem;">The constellation remembers.<br><span class="gold">Even those who anchored it before they could see it.</span></p>
+      
+      <button class="demo-btn" onclick="goToDemo(8)">Continue</button>
+    </div>
+    
+    <!-- Screen 8: The Close -->
+    <div class="demo-screen" id="demo-8">
+      <div class="final-statement">
+        <span class="line1">"I am me"</span>
+        <span class="line2">"And it agrees"</span>
+      </div>
+      
+      <div class="final-name" id="finalName">— Jerald S. Howe, Jr. —</div>
+      <p style="margin-top: 16px; color: #64748b; font-style: italic;" id="finalTagline">Princeton · Oxford · Harvard Law · Leidos</p>
+      
+      <div class="choice-buttons">
+        <button class="choice-btn primary" onclick="goToDemo(9)">
+          <span class="choice-icon">◈</span>
+          <span class="choice-label">See your frictionless day</span>
+        </button>
+        <button class="choice-btn secondary" onclick="goToDemo(14)">
+          <span class="choice-icon">→</span>
+          <span class="choice-label">Skip to the ask</span>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Screen 9: Jerry's Frictionless Day Hub -->
+    <div class="demo-screen" id="demo-9">
+      <h2>Your Frictionless Day</h2>
+      <p>One day. DFW to Aspen. Five attestations.</p>
+      <p class="teal" style="font-size: 0.875rem;">Tap each to see your story:</p>
+      
+      <div class="day-timeline">
+        <div class="day-event" id="event-vote" onclick="showDayScene('vote')">
+          <span class="time">7:00 AM</span>
+          <span class="event-icon">🗳️</span>
+          <div class="event-content">
+            <div class="event-title">Vote at DFW</div>
+            <div class="event-status" id="status-vote">Tap for story</div>
+          </div>
+        </div>
+        <div class="day-event" id="event-rx" onclick="showDayScene('rx')">
+          <span class="time">7:30 PM</span>
+          <span class="event-icon">💊</span>
+          <div class="event-content">
+            <div class="event-title">Rx at Dinner</div>
+            <div class="event-status" id="status-rx">Tap for story</div>
+          </div>
+        </div>
+        <div class="day-event" id="event-bar" onclick="showDayScene('bar')">
+          <span class="time">9:00 PM</span>
+          <span class="event-icon">🍺</span>
+          <div class="event-content">
+            <div class="event-title">The J-Bar</div>
+            <div class="event-status" id="status-bar">Tap for story</div>
+          </div>
+        </div>
+        <div class="day-event" id="event-wire" onclick="showDayScene('wire')">
+          <span class="time">11:00 PM</span>
+          <span class="event-icon">🏦</span>
+          <div class="event-content">
+            <div class="event-title">The Condo</div>
+            <div class="event-status" id="status-wire">Tap for story</div>
+          </div>
+        </div>
+        <div class="day-event" id="event-board" onclick="showDayScene('board')">
+          <span class="time">Next Day</span>
+          <span class="event-icon">🔐</span>
+          <div class="event-content">
+            <div class="event-title">The Board Call</div>
+            <div class="event-status" id="status-board">Tap for story</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="day-stats">
+        <div class="day-stat"><span class="stat-num">1</span><span class="stat-label">Jerry</span></div>
+        <div class="day-stat"><span class="stat-num" id="completedCount">0</span><span class="stat-label">Attested</span></div>
+        <div class="day-stat"><span class="stat-num">0</span><span class="stat-label">Data Leaked</span></div>
+      </div>
+      
+      <button class="demo-btn" id="dayComplete" style="opacity: 0.3; pointer-events: none;" onclick="goToDemo(14)">Continue to the ask →</button>
+    </div>
+    
+    <!-- Screen 10: Vote Story -->
+    <div class="demo-screen" id="demo-10">
+      <div class="story-header">🗳️ VOTE AT DFW — 7:00 AM</div>
+      <h2>Gate B34</h2>
+      <p>Boarding in 20 minutes.</p>
+      <p>You're in Dallas visiting Craig. Moderating an Aspen seminar tomorrow. Maryland early voting closes today.</p>
+      <p>You open DeepGlass. Tap Vote. Attest.</p>
+      
+      <div class="story-attestation">
+        <div class="attest-label">ATTESTATION</div>
+        <div class="attest-item">✓ Voter: Jerald S. Howe, Jr.</div>
+        <div class="attest-item">✓ County: Montgomery, Maryland</div>
+        <div class="attest-item">✓ Status: BALLOT CAST</div>
+        <div class="attest-note">Democracy didn't wait. Neither did you.</div>
+      </div>
+      
+      <button class="demo-btn ghost" onclick="completeDayScene('vote')">Back to Day →</button>
+    </div>
+    
+    <!-- Screen 11: Rx Story -->
+    <div class="demo-screen" id="demo-11">
+      <div class="story-header">💊 RX AT DINNER — 7:30 PM</div>
+      <h2>Aspen, Colorado</h2>
+      <p>Altitude's hitting. You text your cardiologist in Bethesda.</p>
+      <p>Script sent to an Aspen pharmacy. You open DeepGlass, attest to the pharmacy app, order delivery.</p>
+      <p>Uber drops it at your condo. You never leave the table. The sommelier never knew.</p>
+      
+      <div class="story-attestation">
+        <div class="attest-label">ATTESTATION</div>
+        <div class="attest-item">✓ Patient: Jerald S. Howe, Jr.</div>
+        <div class="attest-item">✓ Medication: Authorized</div>
+        <div class="attest-item">✓ Delivery: 1247 Mountain View</div>
+        <div class="attest-note">No fumbling. No HIPAA exposed. Just health.</div>
+      </div>
+      
+      <button class="demo-btn ghost" onclick="completeDayScene('rx')">Back to Day →</button>
+    </div>
+    
+    <!-- Screen 12: Bar Story -->
+    <div class="demo-screen" id="demo-12">
+      <div class="story-header">🍺 THE J-BAR — 9:00 PM</div>
+      <h2>Hotel Jerome</h2>
+      <p>Post-dinner drinks at the bar where Hunter Thompson held court.</p>
+      <p>They card everyone now. You're 70.</p>
+      <p>You smile, open DeepGlass.</p>
+      <p>The bartender sees: <span class="teal">AGE ≥ 21 ✓</span></p>
+      <p>Nothing else.</p>
+      
+      <div class="story-attestation">
+        <div class="attest-label">ATTESTATION</div>
+        <div class="attest-item">✓ Age Requirement: VERIFIED</div>
+        <div class="attest-item">✗ Birthdate: NOT REVEALED</div>
+        <div class="attest-item">✗ Address: NOT REVEALED</div>
+        <div class="attest-note">"Sorry sir, you just... don't look like you'd know how to do that."</div>
+      </div>
+      
+      <button class="demo-btn ghost" onclick="completeDayScene('bar')">Back to Day →</button>
+    </div>
+    
+    <!-- Screen 13: Wire Story -->
+    <div class="demo-screen" id="demo-13">
+      <div class="story-header">🏦 THE CONDO — 11:00 PM</div>
+      <h2>Your Grandson's Tuition</h2>
+      <p>Spring semester due tomorrow. $47,000 wire.</p>
+      <p>You open your bank app. "Authorize wire?"</p>
+      <p>You attest. The bank knows it's really you — not a voice clone calling from "your number."</p>
+      
+      <div class="story-attestation">
+        <div class="attest-label">ATTESTATION</div>
+        <div class="attest-item">✓ Accountholder: Jerald S. Howe, Jr.</div>
+        <div class="attest-item">✓ Amount: $47,000.00</div>
+        <div class="attest-item">✓ Biological Confirmation: VERIFIED</div>
+        <div class="attest-note">Released. You sleep well.</div>
+      </div>
+      
+      <button class="demo-btn ghost" onclick="completeDayScene('wire')">Back to Day →</button>
+    </div>
+    
+    <!-- Screen 13b: Board Call Story -->
+    <div class="demo-screen" id="demo-13b">
+      <div class="story-header">🔐 THE BOARD CALL — Next Day</div>
+      <h2>Palantir</h2>
+      <p>They've asked you to join the board. First meeting is a secure call.</p>
+      <p>Defense contracts. Intelligence partnerships. Government relationships.</p>
+      <p class="gold">Nobody wants another Signalgate.</p>
+      <p>Before the call connects, every participant attests.</p>
+      
+      <div class="story-attestation">
+        <div class="attest-label">SECURE ATTESTATION</div>
+        <div class="attest-item">✓ All participants: BIOLOGICALLY VERIFIED</div>
+        <div class="attest-item">✓ Deepfake detection: ACTIVE</div>
+        <div class="attest-item">✓ Voice clone protection: ACTIVE</div>
+        <div class="attest-note">Not just 2FA. Biological confirmation that every voice on this call is who they claim to be.</div>
+      </div>
+      
+      <button class="demo-btn ghost" onclick="completeDayScene('board')">Back to Day →</button>
+    </div>
+    
+    <!-- Screen 14: The Ask + Personal Close -->
+    <div class="demo-screen" id="demo-14">
+      <h2 style="color: var(--accent-teal);">That's DeepGlass.</h2>
+      <p class="white">"I am me and it agrees."</p>
+      
+      <div class="jerry-close">
+        <p>Jerry, you've spent 35 years at the intersection of law, technology, and national security.</p>
+        <p>From Leidos to INSA to Aspen. You've seen every identity system from the inside.</p>
+        <p>You know what's coming. Synthetic biology. Quantum decryption. The credential collapse.</p>
+        <p style="margin-top: 16px;">For a decade you've moderated Aspen seminars — convening leaders to think through civilization-scale problems.</p>
+        <p>This is <span class="gold">Wye Thinking</span>.</p>
+        <p style="font-size: 0.9rem; color: #94a3b8; margin-top: 8px;">Not what can we build in a quarter.<br>What must we build for a century.</p>
+        <p class="white" style="margin-top: 20px;">This is what we build together.</p>
+        <p class="teal" style="font-size: 0.875rem; margin-top: 8px;">24 provisional patents. 341 claims. Filed.</p>
+      </div>
+      
+      <button class="demo-btn" onclick="goToDemo(15)">One more thing →</button>
+    </div>
+    
+    <!-- Screen 15: SCIF Reveal -->
+    <div class="demo-screen" id="demo-15">
+      <h2 style="color: var(--accent-gold);">By the way, Jerry...</h2>
+      
+      <div class="scif-reveal">
+        <p>This demo just ran inside your phone's <span class="teal">Trusted Execution Environment</span>.</p>
+        <p>Apple calls it the Secure Enclave.</p>
+        <p>You'd call it something else:</p>
+        <p class="white" style="font-size: 1.25rem; margin: 24px 0;">Your personal SCIF.</p>
+        <p style="font-size: 0.9rem; color: #94a3b8;">Isolated. Tamper-resistant. Hardware-rooted trust.</p>
+        <p style="font-size: 0.9rem; color: #94a3b8;">The same architecture that protects nuclear launch codes — in your pocket.</p>
+        <p style="margin-top: 24px;">DeepGlass doesn't require new infrastructure.</p>
+        <p class="teal">It leverages what's already deployed on 3 billion devices.</p>
+      </div>
+      
+      <button class="demo-btn" onclick="goToDemo('15b')">The Constellation Founding Fathers →</button>
+    </div>
+    
+    <!-- Screen 15b: Constellation Founding Fathers -->
+    <div class="demo-screen" id="demo-15b">
+      <h2>The Founding Fathers</h2>
+      <p style="color: #94a3b8; font-style: italic;">Recorded forever in the Wye Trust charter.</p>
+      
+      <div class="founding-fathers">
+        <div class="founder-row">
+          <span class="seq">000</span>
+          <div class="founder-info">
+            <span class="founder-name">Craig Hall</span>
+            <span class="founder-role">Founder · Genesis Node · J-Y83825 anchor</span>
+          </div>
+        </div>
+        <div class="founder-row highlight">
+          <span class="seq">001</span>
+          <div class="founder-info">
+            <span class="founder-name">Jerald S. Howe, Jr.</span>
+            <span class="founder-role">Chairman · First external attestation</span>
+          </div>
+        </div>
+        <div class="founder-row memorial">
+          <span class="seq">002</span>
+          <div class="founder-info">
+            <span class="founder-name">Christopher Howe</span>
+            <span class="founder-role gold">In Memoriam · First posthumous attestation</span>
+            <span class="founder-note">"The constellation remembers those who anchored it."</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="legacy-statement">
+        <p>Jerry...</p>
+        <p>Without sons, we leave our Y legacy in the <span class="gold">Wye Trust</span>.</p>
+        <p class="white" style="margin-top: 12px; font-size: 1.125rem;">Wye Trust?</p>
+        <p class="teal">Because it matters.</p>
+      </div>
+      
+      <button class="demo-btn" onclick="goToDemo(16)">Continue</button>
+    </div>
+    
+    <!-- Screen 16: Final Logo & Share -->
+    <div class="demo-screen" id="demo-16">
+      <div class="final-logo">
+        <svg width="120" height="120" viewBox="0 0 120 120">
+          <defs>
+            <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#2dd4bf"/>
+              <stop offset="100%" style="stop-color:#3b82f6"/>
+            </linearGradient>
+          </defs>
+          <circle cx="60" cy="60" r="55" fill="none" stroke="url(#logoGrad)" stroke-width="2"/>
+          <circle cx="60" cy="60" r="8" fill="url(#logoGrad)"/>
+          <circle cx="60" cy="30" r="5" fill="#d4a72d"/>
+          <circle cx="85" cy="75" r="5" fill="#d4a72d"/>
+          <circle cx="35" cy="75" r="5" fill="#d4a72d"/>
+          <line x1="60" y1="60" x2="60" y2="35" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+          <line x1="60" y1="60" x2="82" y2="73" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+          <line x1="60" y1="60" x2="38" y2="73" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+        </svg>
+      </div>
+      
+      <h2 style="margin-top: 32px; font-size: 2rem;">DeepGlass Genomics</h2>
+      <p class="teal" style="font-style: italic; font-size: 1.125rem;">"I am me and it agrees"</p>
+      
+      <p style="margin-top: 32px; color: #64748b;">The identity layer for the post-quantum economy.</p>
+      
+      <div class="share-section">
+        <p style="font-size: 0.875rem; color: #94a3b8; margin-bottom: 16px;">Share this experience:</p>
+        <button class="share-btn" onclick="shareDemo()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+            <polyline points="16 6 12 2 8 6"/>
+            <line x1="12" y1="2" x2="12" y2="15"/>
+          </svg>
+          Share Demo
+        </button>
+      </div>
+      
+      <div class="choice-buttons" style="margin-top: 32px;">
+        <button class="choice-btn secondary" onclick="reset()">↻ Experience it again</button>
+        <button class="choice-btn tertiary" onclick="resetToEssay()">← Return to Fluidity essay</button>
+      </div>
+    </div>
+    
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav" id="bottomNav">
+    <button class="nav-btn nav-back" id="backBtn">← Back</button>
+    <span class="nav-hint">Let the song finish. Re-read. Jot a thought. Then move forward.</span>
+    <button class="nav-btn" id="nextBtn">Next song →</button>
+  </nav>
+
+  <script>
+    // ═══════════════════════════════════════════════════════════
+    // HAPTICS & AUDIO
+    // ═══════════════════════════════════════════════════════════
+    function haptic(type = 'light') {
+      if ('vibrate' in navigator) {
+        switch(type) {
+          case 'light': navigator.vibrate(10); break;
+          case 'medium': navigator.vibrate(25); break;
+          case 'heavy': navigator.vibrate([50, 30, 50]); break;
+          case 'success': navigator.vibrate([10, 50, 10, 50, 10]); break;
+          case 'warning': navigator.vibrate([100, 50, 100]); break;
+          case 'tick': navigator.vibrate(5); break;
+        }
+      }
+    }
+
+    // Audio context for cues (will initialize on first interaction)
+    let audioCtx = null;
+    
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+    
+    function playTone(freq, duration, type = 'sine', volume = 0.1) {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      gain.gain.value = volume;
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    }
+    
+    function cueTick() { initAudio(); playTone(800, 0.05); haptic('tick'); }
+    function cueSuccess() { initAudio(); playTone(523, 0.1); setTimeout(() => playTone(659, 0.1), 100); setTimeout(() => playTone(784, 0.15), 200); haptic('success'); }
+    function cueWarning() { initAudio(); playTone(400, 0.2); haptic('warning'); }
+
+    // ═══════════════════════════════════════════════════════════
+    // ESSAY NAVIGATION
+    // ═══════════════════════════════════════════════════════════
+    const sections = document.querySelectorAll('.section');
+    const bottomNav = document.getElementById('bottomNav');
+    const nextBtn = document.getElementById('nextBtn');
+    const backBtn = document.getElementById('backBtn');
+    let currentSection = 0;
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          sections.forEach((sec, idx) => {
+            if (sec === entry.target) currentSection = idx;
+          });
+          if (currentSection > 0 && currentSection < sections.length - 1) {
+            bottomNav.classList.add('visible');
+          } else {
+            bottomNav.classList.remove('visible');
+          }
+        }
+      });
+    }, { threshold: 0.3 });
+
+    sections.forEach(sec => observer.observe(sec));
+
+    nextBtn.addEventListener('click', () => {
+      haptic('light');
+      if (currentSection < sections.length - 1) {
+        sections[currentSection + 1].scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+
+    backBtn.addEventListener('click', () => {
+      haptic('light');
+      if (currentSection > 1) {
+        sections[currentSection - 1].scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+
+    document.getElementById('startBtn').addEventListener('click', () => {
+      haptic('medium');
+      initAudio();
+      setTimeout(() => {
+        sections[1].scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 800);
+    });
+
+    // ═══════════════════════════════════════════════════════════
+    // PHONE DEMO
+    // ═══════════════════════════════════════════════════════════
+    const phoneDemo = document.getElementById('phone-demo');
+    const demoScreens = document.querySelectorAll('.demo-screen');
+    let currentDemo = 0;
+    let fakeName = '';
+    let realName = '';
+    let countdownInterval = null;
+    let entropyInterval = null;
+
+    document.getElementById('feelItBtn').addEventListener('click', () => {
+      haptic('heavy');
+      cueSuccess();
+      phoneDemo.classList.add('active');
+      bottomNav.classList.remove('visible');
+      setTimeout(() => {
+        phoneDemo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    });
+
+    function goToDemo(n) {
+      haptic('light');
+      cueTick();
+      document.querySelectorAll('.demo-screen').forEach(s => s.classList.remove('active'));
+      setTimeout(() => {
+        const screen = document.getElementById('demo-' + n);
+        if (screen) {
+          screen.classList.add('active');
+          currentDemo = n;
+          phoneDemo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          
+          if (n === 6) startQRDemo();
+          if (n === 7) animateConstellation();
+        }
+      }, 100);
+    }
+
+    function submitFakeName() {
+      fakeName = document.getElementById('fakeName').value.trim() || 'Anonymous';
+      document.getElementById('fakeNameDisplay').textContent = fakeName;
+      document.getElementById('fakeNameDisplay2').textContent = fakeName;
+      haptic('medium');
+      goToDemo(1);
+    }
+
+    function submitRealName() {
+      realName = document.getElementById('realName').value.trim() || 'You';
+      haptic('heavy');
+      cueSuccess();
+      goToDemo(4);
+      
+      setTimeout(() => {
+        goToDemo(5);
+      }, 2000);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // QR DEMO
+    // ═══════════════════════════════════════════════════════════
+    function startQRDemo() {
+      let seconds = 30;
+      const ring = document.getElementById('progressRing');
+      const num = document.getElementById('countdownNum');
+      const circumference = 2 * Math.PI * 90;
+      ring.style.strokeDasharray = circumference;
+      
+      // Initialize entropy bar
+      const entropyBar = document.getElementById('entropyBar');
+      entropyBar.innerHTML = '';
+      for (let i = 0; i < 20; i++) {
+        const seg = document.createElement('div');
+        seg.className = 'entropy-segment';
+        entropyBar.appendChild(seg);
+      }
+      
+      generateNonce();
+      updateQRTime();
+      updateEntropy();
+      
+      clearInterval(countdownInterval);
+      clearInterval(entropyInterval);
+      
+      countdownInterval = setInterval(() => {
+        seconds--;
+        num.textContent = seconds;
+        ring.style.strokeDashoffset = circumference * (1 - seconds / 30);
+        
+        // Color changes
+        ring.classList.remove('warning', 'danger');
+        if (seconds <= 10 && seconds > 5) {
+          ring.classList.add('warning');
+          if (seconds === 10) cueWarning();
+        }
+        if (seconds <= 5) {
+          ring.classList.add('danger');
+          haptic('tick');
+        }
+        
+        updateQRTime();
+        
+        if (seconds <= 0) {
+          seconds = 30;
+          generateNonce();
+          haptic('medium');
+          cueTick();
+        }
+      }, 1000);
+      
+      entropyInterval = setInterval(updateEntropy, 200);
+    }
+
+    function generateNonce() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let nonce = '';
+      for (let i = 0; i < 4; i++) nonce += chars[Math.floor(Math.random() * chars.length)];
+      document.getElementById('sessionNonce').textContent = nonce;
+    }
+
+    function updateQRTime() {
+      document.getElementById('qrTimestamp').textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
+    }
+
+    function updateEntropy() {
+      const segments = document.querySelectorAll('.entropy-segment');
+      segments.forEach(seg => {
+        seg.classList.toggle('active', Math.random() > 0.5);
+      });
+      haptic('tick');
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // CONSTELLATION
+    // ═══════════════════════════════════════════════════════════
+    function animateConstellation() {
+      // Jerry's constellation - Chris is in memoriam
+      document.getElementById('centerLabel').textContent = 'JERRY';
+      
+      const connections = document.querySelectorAll('.connection');
+      connections.forEach((conn, i) => {
+        setTimeout(() => {
+          conn.classList.add('visible');
+          haptic('tick');
+          cueTick();
+        }, i * 300);
+      });
+      
+      // Special animation for Chris's node
+      setTimeout(() => {
+        const chrisNode = document.getElementById('chrisNode');
+        if (chrisNode) {
+          chrisNode.style.stroke = '#d4a72d';
+          chrisNode.style.strokeWidth = '3';
+        }
+        haptic('success');
+        cueSuccess();
+      }, connections.length * 300 + 500);
+    }
+
+    function reset() {
+      haptic('medium');
+      clearInterval(countdownInterval);
+      clearInterval(entropyInterval);
+      
+      fakeName = '';
+      realName = '';
+      document.getElementById('fakeName').value = '';
+      document.getElementById('realName').value = '';
+      
+      // Reset attestation
+      document.querySelectorAll('input[name="preferredName"]').forEach(r => r.checked = false);
+      const attestBtn = document.getElementById('attestBtn');
+      if (attestBtn) {
+        attestBtn.style.opacity = '0.3';
+        attestBtn.style.pointerEvents = 'none';
+      }
+      
+      // Reset all demo screens
+      document.querySelectorAll('.demo-screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('demo-0').classList.add('active');
+      currentDemo = 0;
+      
+      document.querySelectorAll('.connection').forEach(c => c.classList.remove('visible'));
+      
+      // Reset day scenes
+      Object.keys(dayScenes).forEach(scene => {
+        dayScenes[scene].completed = false;
+        const el = document.getElementById('event-' + scene);
+        if (el) el.classList.remove('completed');
+        const status = document.getElementById('status-' + scene);
+        if (status) status.textContent = 'Tap for story';
+      });
+      const countEl = document.getElementById('completedCount');
+      if (countEl) countEl.textContent = '0';
+      const dayBtn = document.getElementById('dayComplete');
+      if (dayBtn) {
+        dayBtn.style.opacity = '0.3';
+        dayBtn.style.pointerEvents = 'none';
+      }
+      
+      phoneDemo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // KEYBOARD NAV
+    // ═══════════════════════════════════════════════════════════
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && e.target.matches('input')) {
+        if (e.target.id === 'fakeName') submitFakeName();
+        if (e.target.id === 'realName') submitRealName();
+      }
+    });
+
+    // ═══════════════════════════════════════════════════════════
+    // ATTESTATION DECLARATION
+    // ═══════════════════════════════════════════════════════════
+    function enableAttest() {
+      haptic('light');
+      const btn = document.getElementById('attestBtn');
+      btn.style.opacity = '1';
+      btn.style.pointerEvents = 'auto';
+    }
+
+    function doAttest() {
+      haptic('success');
+      cueSuccess();
+      const selected = document.querySelector('input[name="preferredName"]:checked');
+      const name = selected ? selected.value : 'Jerald S. Howe, Jr.';
+      document.getElementById('attestedName').textContent = name;
+      goToDemo('5c');
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // JERRY'S FRICTIONLESS DAY
+    // ═══════════════════════════════════════════════════════════
+    const dayScenes = {
+      vote: { screen: 10, completed: false },
+      rx: { screen: 11, completed: false },
+      bar: { screen: 12, completed: false },
+      wire: { screen: 13, completed: false },
+      board: { screen: '13b', completed: false }
+    };
+
+    function showDayScene(scene) {
+      haptic('light');
+      cueTick();
+      const screenId = dayScenes[scene].screen;
+      demoScreens.forEach(s => s.classList.remove('active'));
+      document.getElementById('demo-' + screenId).classList.add('active');
+      phoneDemo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function completeDayScene(scene) {
+      haptic('medium');
+      cueSuccess();
+      dayScenes[scene].completed = true;
+      
+      // Update UI
+      document.getElementById('event-' + scene).classList.add('completed');
+      document.getElementById('status-' + scene).textContent = '✓ Attested';
+      
+      // Count completed
+      const completed = Object.values(dayScenes).filter(s => s.completed).length;
+      document.getElementById('completedCount').textContent = completed;
+      
+      // Enable continue if all done
+      if (completed >= 5) {
+        const btn = document.getElementById('dayComplete');
+        btn.style.opacity = '1';
+        btn.style.pointerEvents = 'auto';
+        haptic('success');
+      }
+      
+      // Back to hub
+      goToDemo(9);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // SHARE & RESET TO ESSAY
+    // ═══════════════════════════════════════════════════════════
+    function shareDemo() {
+      haptic('medium');
+      const url = window.location.href;
+      const text = "Experience DeepGlass — identity for the post-quantum economy. 'I am me and it agrees.'";
+      
+      if (navigator.share) {
+        navigator.share({
+          title: 'DeepGlass',
+          text: text,
+          url: url
+        }).catch(() => {
+          copyToClipboard(url);
+        });
+      } else {
+        copyToClipboard(url);
+      }
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        cueSuccess();
+        alert('Link copied to clipboard!');
+      }).catch(() => {
+        prompt('Copy this link:', text);
+      });
+    }
+
+    function resetToEssay() {
+      haptic('medium');
+      clearInterval(countdownInterval);
+      clearInterval(entropyInterval);
+      
+      // Reset demo state
+      fakeName = '';
+      realName = '';
+      document.getElementById('fakeName').value = '';
+      document.getElementById('realName').value = '';
+      
+      // Reset attestation
+      document.querySelectorAll('input[name="preferredName"]').forEach(r => r.checked = false);
+      const attestBtn = document.getElementById('attestBtn');
+      if (attestBtn) {
+        attestBtn.style.opacity = '0.3';
+        attestBtn.style.pointerEvents = 'none';
+      }
+      
+      document.querySelectorAll('.demo-screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('demo-0').classList.add('active');
+      currentDemo = 0;
+      document.querySelectorAll('.connection').forEach(c => c.classList.remove('visible'));
+      
+      // Reset day scenes
+      Object.keys(dayScenes).forEach(scene => {
+        dayScenes[scene].completed = false;
+        const el = document.getElementById('event-' + scene);
+        if (el) el.classList.remove('completed');
+        const status = document.getElementById('status-' + scene);
+        if (status) status.textContent = 'Tap for story';
+      });
+      const countEl = document.getElementById('completedCount');
+      if (countEl) countEl.textContent = '0';
+      const dayBtn = document.getElementById('dayComplete');
+      if (dayBtn) {
+        dayBtn.style.opacity = '0.3';
+        dayBtn.style.pointerEvents = 'none';
+      }
+      
+      // Hide phone demo, show essay
+      phoneDemo.classList.remove('active');
+      
+      // Scroll to prelude
+      document.getElementById('prelude').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  </script>
+
+</body>
+</html>
