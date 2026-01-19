@@ -1,0 +1,2113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>DeepGlass — Victor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Libre+Franklin:wght@300;400;500&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    :root {
+      --bg-deep: #0a0a0f;
+      --bg-surface: #12121a;
+      --text-primary: #e8e6e3;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent-teal: #2dd4bf;
+      --accent-gold: #d4a574;
+      --accent-rose: #ef4444;
+      --accent-blue: #3b82f6;
+      --glass-border: rgba(255,255,255,0.08);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Libre Franklin', sans-serif;
+      font-weight: 300;
+      background: radial-gradient(ellipse at center, #12121a 0%, #0a0a0f 70%, #050508 100%);
+      color: var(--text-primary);
+      line-height: 1.7;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    .screen {
+      min-height: 100vh;
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 60px 32px;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    .screen.active { display: flex; opacity: 1; }
+    .screen.red-bg { background: linear-gradient(180deg, #450a0a 0%, var(--bg-deep) 100%); }
+    .screen.teal-bg { background: linear-gradient(180deg, #042f2e 0%, var(--bg-deep) 100%); }
+    .screen.gold-bg { background: linear-gradient(180deg, #451a03 0%, var(--bg-deep) 100%); }
+    .screen.blue-bg { background: linear-gradient(180deg, #1e3a5f 0%, var(--bg-deep) 100%); }
+
+    h1 { font-family: 'Cormorant Garamond', serif; font-size: clamp(2rem, 8vw, 3.5rem); font-weight: 300; margin-bottom: 24px; line-height: 1.2; }
+    h2 { font-family: 'Cormorant Garamond', serif; font-size: clamp(1.5rem, 6vw, 2.5rem); font-weight: 300; margin-bottom: 20px; line-height: 1.3; }
+    p { max-width: 540px; margin-bottom: 16px; color: var(--text-secondary); font-size: 16px; }
+    .muted { color: var(--text-muted); font-size: 14px; }
+    .teal { color: var(--accent-teal); }
+    .gold { color: var(--accent-gold); }
+    .rose { color: var(--accent-rose); }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 24px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--glass-border);
+    }
+    .badge.red { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); color: var(--accent-rose); }
+    .badge.teal { background: rgba(45, 212, 191, 0.1); border-color: rgba(45, 212, 191, 0.3); color: var(--accent-teal); }
+    .badge.gold { background: rgba(212, 165, 116, 0.1); border-color: rgba(212, 165, 116, 0.3); color: var(--accent-gold); }
+    .badge.blue { background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.3); color: var(--accent-blue); }
+
+    .btn {
+      padding: 14px 32px;
+      font-size: 15px;
+      font-weight: 400;
+      background: var(--accent-teal);
+      color: var(--bg-deep);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 16px;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(45, 212, 191, 0.3); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .btn.gold { background: var(--accent-gold); }
+    .btn.text { background: transparent; color: var(--text-muted); text-decoration: underline; }
+
+    .input-container { margin: 24px 0; width: 100%; max-width: 320px; }
+    .input-container input {
+      width: 100%;
+      padding: 16px 20px;
+      font-size: 18px;
+      font-family: 'Cormorant Garamond', serif;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      color: var(--text-primary);
+      text-align: center;
+    }
+    .input-container input:focus { outline: none; border-color: var(--accent-teal); }
+
+    /* Triangulation Visual */
+    .triangulation-visual {
+      position: relative;
+      width: 280px;
+      height: 240px;
+      margin: 32px auto;
+    }
+    .tri-node {
+      position: absolute;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      opacity: 0.5;
+      transition: all 0.5s ease;
+    }
+    .tri-node.active { opacity: 1; border-color: var(--accent-teal); box-shadow: 0 0 20px rgba(45, 212, 191, 0.2); }
+    .tri-node.autosomal { top: 0; left: 50%; transform: translateX(-50%); }
+    .tri-node.ydna { bottom: 0; left: 0; }
+    .tri-node.mtdna { bottom: 0; right: 0; }
+    .tri-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: var(--accent-teal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 500;
+      color: var(--bg-deep);
+      font-size: 14px;
+      opacity: 0;
+      transition: all 0.5s ease;
+    }
+    .tri-center.active { opacity: 1; }
+
+    /* Timeline */
+    .timeline-container { margin: 32px 0; padding: 0 20px; }
+    .timeline { display: flex; justify-content: space-between; align-items: center; max-width: 400px; margin: 0 auto; position: relative; }
+    .timeline::before { content: ''; position: absolute; top: 8px; left: 40px; right: 40px; height: 2px; background: var(--glass-border); }
+    .timeline-point { display: flex; flex-direction: column; align-items: center; z-index: 1; }
+    .timeline-dot { width: 16px; height: 16px; border-radius: 50%; margin-bottom: 8px; }
+    .timeline-dot.teal { background: var(--accent-teal); }
+    .timeline-dot.gold { background: var(--accent-gold); }
+    .timeline-dot.rose { background: var(--accent-rose); }
+    .timeline-year { font-weight: 500; font-size: 14px; margin-bottom: 4px; }
+    .timeline-label { font-size: 11px; color: var(--text-muted); }
+
+    /* Moat Curve */
+    .moat-container { margin: 32px 0; max-width: 400px; }
+    .moat-curve { position: relative; height: 180px; background: rgba(255,255,255,0.02); border-radius: 12px; overflow: hidden; }
+    .moat-curve svg { width: 100%; height: 100%; }
+    .moat-curve path { fill: none; stroke: var(--accent-teal); stroke-width: 3; stroke-dasharray: 500; stroke-dashoffset: 500; transition: stroke-dashoffset 2s ease; }
+    .moat-curve.animated path { stroke-dashoffset: 0; }
+    .moat-label { position: absolute; font-size: 11px; color: var(--text-muted); }
+    .moat-label.start { bottom: 8px; left: 8px; }
+    .moat-label.end { top: 8px; right: 8px; color: var(--accent-teal); }
+
+    /* QR Demo */
+    .qr-container { margin: 24px 0; position: relative; }
+    .qr-ring { position: relative; width: 200px; height: 200px; }
+    .qr-ring svg { position: absolute; top: 0; left: 0; transform: rotate(-90deg); }
+    .qr-ring circle { fill: none; stroke-width: 4; }
+    .qr-ring .bg { stroke: var(--glass-border); }
+    .qr-ring .progress { stroke: var(--accent-teal); transition: stroke-dashoffset 1s linear; }
+    .qr-live {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 160px;
+      height: 160px;
+      background: white;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+    }
+    .qr-live canvas, .qr-live img {
+      max-width: 100%;
+      max-height: 100%;
+    }
+    .countdown { font-size: 64px; font-family: 'Cormorant Garamond', serif; color: var(--accent-teal); }
+    .entropy-bar { display: flex; gap: 3px; margin-top: 16px; justify-content: center; }
+    .entropy-segment { width: 12px; height: 4px; background: var(--glass-border); border-radius: 2px; transition: background 0.3s; }
+    .entropy-segment.active { background: var(--accent-teal); }
+    .witness-message {
+      margin-top: 24px;
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      color: var(--accent-teal);
+      font-size: 18px;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+    .witness-message.visible { opacity: 1; }
+
+    /* Constellation */
+    .constellation { position: relative; width: 300px; height: 300px; margin: 24px auto; }
+    .constellation .node {
+      position: absolute;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.03);
+      border: 2px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: 500;
+      text-transform: uppercase;
+      opacity: 0.3;
+      transition: all 0.5s ease;
+    }
+    .constellation .node.active { 
+      opacity: 1; 
+      border-color: var(--accent-teal); 
+      background: rgba(45, 212, 191, 0.1);
+      animation: orbit 8s linear infinite;
+    }
+    .constellation .node.center { 
+      width: 72px; 
+      height: 72px; 
+      top: 50%; 
+      left: 50%; 
+      transform: translate(-50%, -50%); 
+      background: var(--accent-teal); 
+      color: var(--bg-deep); 
+      opacity: 1; 
+      font-size: 11px;
+      font-weight: 600;
+      animation: pulse-glow 2s ease-in-out infinite;
+      z-index: 10;
+    }
+    .constellation .node:nth-child(1) { top: 5%; left: 50%; transform: translateX(-50%); animation-delay: 0s; }
+    .constellation .node:nth-child(2) { top: 20%; right: 5%; animation-delay: -1.3s; }
+    .constellation .node:nth-child(3) { bottom: 20%; right: 5%; animation-delay: -2.6s; }
+    .constellation .node:nth-child(4) { bottom: 5%; left: 50%; transform: translateX(-50%); animation-delay: -4s; }
+    .constellation .node:nth-child(5) { bottom: 20%; left: 5%; animation-delay: -5.3s; }
+    .constellation .node:nth-child(6) { top: 20%; left: 5%; animation-delay: -6.6s; }
+    
+    /* Connection lines */
+    .constellation .connection {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100px;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent-teal), transparent);
+      transform-origin: left center;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    .constellation .connection.active { opacity: 0.4; }
+    .constellation .connection:nth-child(8) { transform: rotate(0deg); }
+    .constellation .connection:nth-child(9) { transform: rotate(60deg); }
+    .constellation .connection:nth-child(10) { transform: rotate(120deg); }
+    .constellation .connection:nth-child(11) { transform: rotate(180deg); }
+    .constellation .connection:nth-child(12) { transform: rotate(240deg); }
+    .constellation .connection:nth-child(13) { transform: rotate(300deg); }
+
+    @keyframes orbit {
+      0% { transform: translateX(-50%) scale(1); filter: brightness(1); }
+      25% { transform: translateX(-50%) scale(1.1); filter: brightness(1.2); }
+      50% { transform: translateX(-50%) scale(1); filter: brightness(1); }
+      75% { transform: translateX(-50%) scale(0.95); filter: brightness(0.9); }
+      100% { transform: translateX(-50%) scale(1); filter: brightness(1); }
+    }
+    
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(45, 212, 191, 0.3); }
+      50% { box-shadow: 0 0 40px rgba(45, 212, 191, 0.6), 0 0 60px rgba(45, 212, 191, 0.2); }
+    }
+    
+    .validating-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      color: var(--accent-teal);
+      font-size: 14px;
+      margin-top: 16px;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    .validating-text.visible { opacity: 1; }
+
+    /* Recognition Box */
+    .recognition-box {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 32px 40px;
+      max-width: 480px;
+      margin: 24px 0;
+    }
+    .recognition-box .question { font-family: 'Cormorant Garamond', serif; font-size: 24px; margin-bottom: 8px; }
+    .recognition-box .question span { color: var(--accent-teal); }
+    .recognition-box .correction { font-size: 14px; color: var(--text-muted); text-decoration: line-through; margin-bottom: 16px; }
+    .recognition-box .aka { font-size: 15px; color: var(--text-secondary); margin-bottom: 4px; }
+    .recognition-box .aka span { color: var(--accent-gold); }
+    .recognition-box .special { margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.08); font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 18px; }
+    .recognition-box .special span { color: var(--accent-gold); }
+
+    /* Final */
+    .final-statement { display: flex; flex-direction: column; gap: 8px; margin-bottom: 32px; }
+    .final-statement .line1 { font-family: 'Cormorant Garamond', serif; font-size: clamp(2rem, 10vw, 4rem); font-weight: 300; color: var(--text-primary); }
+    .final-statement .line2 { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: clamp(1.5rem, 7vw, 2.5rem); color: var(--accent-teal); }
+
+    /* Roberts Close */
+    .roberts-close {
+      max-width: 600px;
+      margin: 32px 0;
+      padding: 32px;
+      background: rgba(212, 165, 116, 0.05);
+      border: 1px solid rgba(212, 165, 116, 0.2);
+      border-radius: 16px;
+    }
+    .roberts-close p { font-family: 'Cormorant Garamond', serif; font-size: 20px; line-height: 1.8; color: var(--text-secondary); margin-bottom: 0; }
+    .roberts-close em { color: var(--accent-gold); }
+
+    /* Scenario Cards */
+    .scenario-cards { display: flex; flex-direction: column; gap: 12px; margin: 24px 0; max-width: 400px; width: 100%; }
+    .scenario-card {
+      padding: 20px 24px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: left;
+    }
+    .scenario-card:hover { border-color: var(--accent-teal); transform: translateX(4px); }
+    .scenario-card .title { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: var(--text-primary); margin-bottom: 4px; }
+    .scenario-card .subtitle { font-size: 13px; color: var(--text-muted); font-style: italic; }
+
+    .progress-bar { position: fixed; top: 0; left: 0; height: 2px; background: var(--accent-teal); transition: width 0.3s ease; z-index: 100; }
+    .nav-hint { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); font-size: 12px; color: var(--text-muted); opacity: 0.6; }
+
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .animate-in { animation: fadeInUp 0.8s ease forwards; }
+    .pulse { animation: pulse 2s ease-in-out infinite; }
+    /* ═══════════════════════════════════════════════════════════
+       ESSAY SECTIONS
+    ═══════════════════════════════════════════════════════════ */
+    #essayPart { display: block; }
+    #essayPart.hidden { display: none; }
+    
+    .essay-section {
+      min-height: 100vh;
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 80px 32px;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+    
+    .essay-section.active { display: flex; opacity: 1; }
+    
+    .essay-content { max-width: 640px; margin: 0 auto; }
+    
+    .essay-content p {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.1rem, 3vw, 1.35rem);
+      line-height: 1.9;
+      color: var(--text-secondary);
+      margin-bottom: 1.5em;
+      text-align: left;
+    }
+    
+    .essay-content p.center { text-align: center; }
+    .essay-content .highlight { color: var(--accent-teal); font-style: italic; }
+    
+    .section-number {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 4rem;
+      color: rgba(255,255,255,0.1);
+      margin-bottom: 16px;
+    }
+    
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem, 6vw, 3rem);
+      font-weight: 300;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+    
+    .section-title em { color: var(--accent-teal); font-style: italic; }
+    
+    .song-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: rgba(45, 212, 191, 0.08);
+      border: 1px solid rgba(45, 212, 191, 0.2);
+      border-radius: 20px;
+      font-size: 0.85rem;
+      color: var(--accent-teal);
+      margin-bottom: 32px;
+    }
+    
+    .song-indicator .note { font-size: 1rem; }
+    .song-indicator .duration { opacity: 0.6; }
+    
+    .separator {
+      width: 60px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent-teal), transparent);
+      margin: 32px auto;
+    }
+    
+    .contemplation {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 1.1rem;
+      color: var(--accent-gold);
+      margin-top: 40px;
+      padding: 20px;
+      border-left: 2px solid rgba(212, 165, 116, 0.3);
+      text-align: left;
+    }
+    
+    .prelude-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(3rem, 10vw, 5rem);
+      font-weight: 300;
+      letter-spacing: 0.1em;
+      margin-bottom: 16px;
+    }
+    
+    .prelude-subtitle {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 1.2rem;
+      color: var(--text-muted);
+      margin-bottom: 48px;
+    }
+    
+    .spotify-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 32px;
+      background: #1DB954;
+      color: white;
+      text-decoration: none;
+      border-radius: 30px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+    
+    .spotify-btn:hover { transform: scale(1.05); box-shadow: 0 8px 32px rgba(29, 185, 84, 0.4); }
+    .spotify-btn svg { width: 24px; height: 24px; }
+    
+    .prelude-hint { font-size: 0.9rem; color: var(--text-muted); margin-top: 24px; }
+    
+    .reassurance {
+      margin-top: 40px;
+      padding: 20px 24px;
+      border-left: 3px solid var(--accent-teal);
+      text-align: left;
+      max-width: 400px;
+    }
+    
+    .reassurance p { font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 8px; }
+    .reassurance p.consequential { color: var(--accent-teal); font-style: italic; }
+
+    .essay-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 32px;
+      background: linear-gradient(transparent, var(--bg-deep));
+      z-index: 100;
+    }
+    
+    .nav-btn {
+      padding: 12px 24px;
+      font-family: 'Libre Franklin', sans-serif;
+      font-size: 14px;
+      background: transparent;
+      border: 1px solid var(--glass-border);
+      color: var(--text-secondary);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .nav-btn:hover:not(:disabled) { border-color: var(--accent-teal); color: var(--accent-teal); }
+    .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    
+    .nav-hint-essay {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .now-feel-it {
+      padding: 16px 40px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.2rem;
+      background: var(--accent-teal);
+      color: var(--bg-deep);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 32px;
+    }
+    
+    .now-feel-it:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(45, 212, 191, 0.4); }
+
+    #demoPart { display: none; }
+    #demoPart.active { display: block; }
+  </style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     PART I: FLUIDITY ESSAY
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<div id="essayPart">
+<!-- PRELUDE -->
+<section class="essay-section active" id="prelude">
+  <div class="essay-content" style="text-align: center;">
+    <h1 class="prelude-title">Fluidity</h1>
+    <p class="prelude-subtitle">From the village square to the quantum dawn — a meditation on trust, identity, and the architecture of being known</p>
+    
+    <a href="https://open.spotify.com/playlist/1bbh7ffIIYawSgSupkAGdx" target="_blank" class="spotify-btn" id="startBtn">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+      </svg>
+      Start Spotify Playlist
+    </a>
+    
+    <p class="prelude-hint">Opens in new tab. Return here. Let the music guide you.</p>
+    
+    <div class="reassurance">
+      <p>If you get lost in the big thinking, it's easy to find your way back.</p>
+      <p>Use the flow. Use the time.</p>
+      <p class="consequential">This really is consequential.</p>
+    </div>
+  </div>
+</section>
+
+<!-- I. SILENCE SPEAKS — PERSONHOOD -->
+<section class="essay-section" id="section-1">
+  <div class="essay-content">
+    <div class="section-number">I</div>
+    <div class="song-indicator"><span class="note">♫</span> Silence Speaks — GoGo Penguin <span class="duration">3:08</span></div>
+    <h2 class="section-title"><em>Personhood</em></h2>
+    
+    <div class="separator"></div>
+    
+    <p>Before words, there was trust.</p>
+    
+    <p>A child trusts the arms that hold them. No proof. No credential. No document. Just warmth. Just presence. <span class="highlight">Just knowing.</span></p>
+    
+    <p>This is where we began.</p>
+    
+    <div class="separator"></div>
+    
+    <p>Think of the corner grocer. She didn't need your browsing history. She didn't catalog your purchases for resale. She didn't check your credit score.</p>
+    
+    <p>She just knew you were Maria's kid. Part of the neighborhood. <span class="highlight">Good for the tab.</span></p>
+    
+    <p><em>That was enough. That was trust.</em></p>
+    
+    <p>Vouching, not watching. Witnessing, not cataloging. The body was the proof. The community was the witness.</p>
+    
+    <div class="separator"></div>
+    
+    <p>Three instruments. No conductor.</p>
+    
+    <p>The bass holds the ground. The drums mark the time. The piano finds the space between.</p>
+    
+    <p>None leads. None follows. All three lead. All three follow.</p>
+    
+    <p class="center"><em>This is how trust works. Before systems. Before institutions. Before anyone tried to write it down.</em></p>
+    
+    <p>Local rules. Global coherence. <span class="highlight">The tribe that trusts survives the winter.</span></p>
+    
+    <div class="contemplation">
+      Listen to the silence between the notes. Your grandmother knew this silence — the pause before recognition. Let the song finish.
+    </div>
+  </div>
+</section>
+
+<!-- II. MURMURATION — THE VILLAGE -->
+<section class="essay-section" id="section-2">
+  <div class="essay-content">
+    <div class="section-number">II</div>
+    <div class="song-indicator"><span class="note">♫</span> Murmuration — GoGo Penguin <span class="duration">4:12</span></div>
+    <h2 class="section-title">The <em>Village</em></h2>
+    
+    <div class="separator"></div>
+    
+    <p>We left the village.</p>
+    
+    <p>Tribes became cities. Cities became nations. Faces became too many to know.</p>
+    
+    <p class="center" style="color: var(--accent-gold);"><em>How do you trust a stranger?</em></p>
+    
+    <div class="separator"></div>
+    
+    <p>At dusk, starlings gather into murmurations — thousands of birds swirling across the sky in vast, coordinated patterns.</p>
+    
+    <p><span class="highlight">No single bird leads. No conductor directs.</span></p>
+    
+    <p>The dance emerges from countless local interactions. Each bird attends to just seven neighbors. Local rules. Global coherence. The flock moves as one because each part listens.</p>
+    
+    <div class="separator"></div>
+    
+    <p>Think of the corner grocer. She didn't need your browsing history. She didn't catalog your purchases for resale. She didn't check your credit score.</p>
+    
+    <p>She just knew you were Maria's kid. Part of the neighborhood. Good for the tab.</p>
+    
+    <p><em>That was enough. That was trust.</em></p>
+    
+    <p>Vouching, not watching. <span class="highlight">Witnessing, not cataloging.</span></p>
+    
+    <div class="separator"></div>
+    
+    <p>What proves your grandmother was your grandmother?</p>
+    
+    <p>Not a certificate. Not a database entry. Not a photograph that could be fabricated.</p>
+    
+    <p>Her blood in your blood. Her markers in your markers. <span class="highlight">The channel that carried her life into yours.</span></p>
+    
+    <p class="center" style="color: var(--accent-gold); font-style: italic; font-size: 1.3rem;">"The river knows its channel."</p>
+    
+    <div class="contemplation">
+      This song is about starlings — thousands moving as one. Seven neighbors, infinite patterns. Wait for it to finish.
+    </div>
+  </div>
+</section>
+
+<!-- III. ATOMISED — THE ICE FALLACY -->
+<section class="essay-section" id="section-3">
+  <div class="essay-content">
+    <div class="section-number">III</div>
+    <div class="song-indicator"><span class="note">♫</span> Atomised — GoGo Penguin <span class="duration">4:23</span></div>
+    <h2 class="section-title">The <em>Ice Fallacy</em></h2>
+    
+    <div class="separator"></div>
+    
+    <p>They tried to freeze the murmuration.</p>
+    
+    <p>Crystallize the river. Transcribe the jazz into sheet music. Call the paper "identity."</p>
+    
+    <p>But <span class="highlight">ice is not river</span>. A photograph of starlings is not starlings. Sheet music is not music.</p>
+    
+    <p>The frozen sample loses everything: the heartbeat, the pace, the capacity for change.</p>
+    
+    <div class="separator"></div>
+    
+    <p style="font-weight: 500; color: var(--text-primary);">Pick up your phone. Open your messages. Scroll.</p>
+    
+    <div style="margin: 24px 0; padding: 16px; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 12px; text-align: left; font-family: monospace; font-size: 13px; color: var(--text-muted);">
+      "Your verification code is 847291"<br>
+      "Your code is 553820"<br>
+      "Enter this code: 991047"<br>
+      "Security code: 773902"<br>
+      ...
+    </div>
+    
+    <p class="center" style="color: var(--accent-rose); font-style: italic;">A graveyard in your pocket.</p>
+    
+    <p>Each one a moment you were suspected. Each one a toll paid to exist as yourself. Each one saying: <em>"We don't believe you. Prove it again."</em></p>
+    
+    <p>Frozen credentials melt into fraud. Once copied, infinitely copied. Frozen credentials shatter. <span class="highlight">Quantum will break the lattice.</span></p>
+    
+    <div class="contemplation">
+      "Atomised" — broken into pieces. That's what happened to identity. That's what happened to trust. Let it play.
+    </div>
+  </div>
+</section>
+
+<!-- IV. HOPOPONO — TO MAKE RIGHT -->
+<section class="essay-section" id="section-4">
+  <div class="essay-content">
+    <div class="section-number">IV</div>
+    <div class="song-indicator"><span class="note">♫</span> Hopopono — GoGo Penguin <span class="duration">3:56</span></div>
+    <h2 class="section-title"><em>Ho'oponopono</em></h2>
+    
+    <div class="separator"></div>
+    
+    <p style="text-align: center; color: var(--accent-gold); font-style: italic; font-size: 1.2rem;">To make right.</p>
+    
+    <p>The Hawaiian prayer of reconciliation. <em>I'm sorry. Please forgive me. Thank you. I love you.</em></p>
+    
+    <p>An apology for thirty years of forcing humans to act like machines.</p>
+    
+    <p>What was frozen can thaw. What was scattered can gather. What was severed can rejoin.</p>
+    
+    <div class="separator"></div>
+    
+    <p><span class="highlight">Three currents flow together</span> — like the three instruments you're hearing now. Each listening to the others.</p>
+    
+    <p><strong style="color: var(--accent-teal);">The Channel.</strong> Your genome is the riverbed. The flight path carved by generations. Fixed at origin. Shaping without constraining. Yours by inheritance. No one granted it. No one can revoke it.</p>
+    
+    <p><strong style="color: var(--accent-gold);">The Current.</strong> The river exists only in flowing. The music only in playing. Movement happening now. Yours by presence. Only you can attest to your own becoming.</p>
+    
+    <p><strong style="color: var(--accent-blue);">The Confluence.</strong> No river flows alone. No bird murmurates in isolation. No instrument plays without listening. The ensemble building patterns none could create alone. Yours by belonging.</p>
+    
+    <p class="center" style="margin-top: 24px;">Bass. Drums. Piano.<br>Channel. Current. Confluence.<br><span class="highlight">None leads. None follows. All three hold.</span></p>
+    
+    <div class="contemplation">
+      This is the reconciliation. The restoration. Not innovation — remembering. Let the prayer settle.
+    </div>
+  </div>
+</section>
+
+<!-- V. SO IT BEGINS — THE GLASS -->
+<section class="essay-section" id="section-5">
+  <div class="essay-content">
+    <div class="section-number">V</div>
+    <div class="song-indicator"><span class="note">♫</span> So It Begins — GoGo Penguin <span class="duration">4:01</span></div>
+    <h2 class="section-title">The <em>Glass</em></h2>
+    
+    <div class="separator"></div>
+    
+    <p>Glass is strong. Stronger than steel in the right configuration.</p>
+    
+    <p>It doesn't hide what's inside. It doesn't pretend to be something else. It simply <em>is</em> — transparent, resilient, honest about its nature.</p>
+    
+    <p>We named this DeepGlass because the system works the same way.</p>
+    
+    <p>Nothing hidden. Nothing stored. Nothing that could be stolen because there's nothing <em>to</em> steal. Just the mathematics of who you are, verified against the biology you carry.</p>
+    
+    <div class="separator"></div>
+    
+    <p>The Woolmark didn't describe the wool. It didn't say "soft" or "warm" or "from a healthy sheep."</p>
+    
+    <p>It said: <span class="highlight">"This wool passed through the Calais Staple. It was weighed. It was witnessed. It was vouched for by the network."</span></p>
+    
+    <p>Merchants trusted merchants across borders. Not because they knew each wool bale. Because they knew the system that verified it.</p>
+    
+    <p style="color: var(--accent-gold);">The oldest trust architecture that scaled beyond the village.</p>
+    
+    <div class="separator"></div>
+    
+    <p class="center"><span class="highlight">You cannot compute a life that was actually lived.</span></p>
+    
+    <p>A forger would need to synthesize not just your DNA, but your mother's, your father's, your grandparents' — all linked, all coherent, all timestamped across decades of biological attestation.</p>
+    
+    <p>The forgery cost isn't expensive. It's <em>thermodynamically absurd.</em></p>
+    
+    <div class="contemplation">
+      "So It Begins" — the architecture taking shape. The glass forming. The trust returning.
+    </div>
+  </div>
+</section>
+
+<!-- VI. KORA — THE ANCHOR -->
+<section class="essay-section" id="section-6">
+  <div class="essay-content">
+    <div class="section-number">VI</div>
+    <div class="song-indicator"><span class="note">♫</span> Kora — GoGo Penguin <span class="duration">4:31</span></div>
+    <h2 class="section-title">The <em>Anchor</em></h2>
+    
+    <div class="separator"></div>
+    
+    <p>Imagine a telescope.</p>
+    
+    <p>The tube is empty. It holds nothing. But point it at the sky, and suddenly you can see what was always there — stars that existed before you, that will exist after you, that prove themselves by their own light.</p>
+    
+    <p><span class="highlight">The Anchor device works the same way.</span></p>
+    
+    <p>It stores nothing. It processes, commits, forgets. Like the telescope, it's just a lens — a way to focus what was already true into something verifiable.</p>
+    
+    <p class="center" style="color: var(--accent-teal); font-style: italic;">The tube is empty. The stars are real.</p>
+    
+    <div class="separator"></div>
+    
+    <p>Your markers were fixed at conception. Your mitochondrial signature came from your mother, unchanged for a hundred thousand years. Your Y-chromosome traces an unbroken line to a man who walked the African savanna.</p>
+    
+    <p>These aren't credentials issued by an authority. They're <em>facts</em> written in the language of life itself.</p>
+    
+    <div class="separator"></div>
+    
+    <p style="color: var(--accent-gold);">Your personal North Star.</p>
+    
+    <p>Your grandmother looked up and saw it. The sailor steered by it. Your grandchildren will find it still.</p>
+    
+    <p>Everything else rotates. Jobs. Addresses. Names. Passwords. Institutions. Nations.</p>
+    
+    <p><span class="highlight">But one point holds still.</span></p>
+    
+    <p>The channel carved by ancestors. The markers that position you. The star that was yours before you knew to look.</p>
+    
+    <div class="contemplation">
+      "Kora" — an African stringed instrument. Ancient technology making new music. Your genome carries billions of years.
+    </div>
+  </div>
+</section>
+
+<!-- VII. OCEAN IN A DROP — THE ORPHAN PROVISION -->
+<section class="essay-section" id="section-7">
+  <div class="essay-content">
+    <div class="section-number">VII</div>
+    <div class="song-indicator"><span class="note">♫</span> Ocean In A Drop — GoGo Penguin <span class="duration">5:02</span></div>
+    <h2 class="section-title">The <em>Orphan Provision</em></h2>
+    
+    <div class="separator"></div>
+    
+    <p>But what of those with no documented past?</p>
+    
+    <p>The adopted child. The refugee without papers. The estranged. The displaced. The ones whose channel was never mapped.</p>
+    
+    <p><span class="highlight">The constellation does not require ancestors. It requires witnesses.</span></p>
+    
+    <p>You cannot choose who came before. You can choose who comes after.</p>
+    
+    <div class="separator"></div>
+    
+    <p>The Current stands alone if it must. One attestation. One witness. One star.</p>
+    
+    <p>And from that single point, <em>a new constellation begins.</em></p>
+    
+    <p style="color: var(--accent-gold);">You become the ancestor. You become the root of the tree. You become the channel for those who follow.</p>
+    
+    <p>The system doesn't privilege the past. It enables the future.</p>
+    
+    <p class="center"><span class="highlight">Every constellation started somewhere. Every river has a first spring.</span></p>
+    
+    <p class="center" style="color: var(--accent-teal); font-style: italic; font-size: 1.2rem;">You can be the spring.</p>
+    
+    <p style="margin-top: 24px; color: var(--text-muted); font-style: italic;">Not a gated garden. A growing forest.</p>
+    
+    <div class="contemplation">
+      "Ocean In A Drop" — the whole contained in the smallest part. You were never lost. You just hadn't been found yet.
+    </div>
+  </div>
+</section>
+
+<!-- VIII. ONE PERCENT — THE DECLARATION -->
+<section class="essay-section" id="section-8">
+  <div class="essay-content">
+    <div class="section-number">VIII</div>
+    <div class="song-indicator"><span class="note">♫</span> One Percent — GoGo Penguin <span class="duration">6:18</span></div>
+    <h2 class="section-title">The <em>Declaration</em></h2>
+    
+    <div class="separator"></div>
+    
+    <p>July 4, 2026. The 250th anniversary.</p>
+    
+    <p>Benjamin Franklin made one edit to Jefferson's draft. He changed "sacred" to "self-evident."</p>
+    
+    <p>Sacred meant: <em>because God said so.</em><br>
+    Self-evident meant: <em>because it's obviously true.</em></p>
+    
+    <p class="center"><span class="highlight">We hold these truths to be self-evident.</span></p>
+    
+    <div class="separator"></div>
+    
+    <p>"I am me."</p>
+    
+    <p>The first sentence. The last certainty.</p>
+    
+    <p>A child says it. Your grandmother knew it. A quantum computer cannot refute it.</p>
+    
+    <p>The river knows its channel. The bird knows its flock. The player knows the tune.</p>
+    
+    <p><span class="highlight">You know. You always knew.</span></p>
+    
+    <div class="separator"></div>
+    
+    <p>"And it agrees."</p>
+    
+    <p>The mother recognizes the child. The tribe recognizes kin. The constellation recognizes the star.</p>
+    
+    <p>Not by checking papers. Not by running algorithms. Not by trusting institutions.</p>
+    
+    <p style="color: var(--accent-gold);">By knowing. The confluence witnesses. As it always did. As it will again.</p>
+    
+    <div class="separator"></div>
+    
+    <p style="color: var(--accent-gold); font-style: italic; font-size: 1.2rem; text-align: center; margin: 32px 0;">Your identity was never granted.<br>It cannot be revoked.</p>
+    
+    <div class="contemplation">
+      The longest song. Six minutes and eighteen seconds. This is the close. You've earned this space. Let it finish. Go back, Go up, follow the breadcrumbs or move forward to the demo. The life is yours with the freedom to go forward as yourself.
+    </div>
+  </div>
+</section>
+
+<!-- CODA -->
+<section class="essay-section" id="coda">
+  <div class="essay-content" style="text-align: center;">
+    <div class="section-number" style="font-size: 2rem;">∞</div>
+    <h2 class="section-title">Keep Flowing</h2>
+    
+    <div class="separator"></div>
+    
+    <p style="text-align: center;">Thank you for reading.<br>Thank you for listening.<br>Thank you for being here.</p>
+    
+    <p style="text-align: center; margin-top: 16px;"><em>Present. Flowing. Alive. Trusted.</em></p>
+    
+    <div class="separator"></div>
+    
+    <p style="text-align: center;">The corner grocer trusted you were good for the tab.<br>The child trusts the arms that hold them.<br>The sailor trusts the star.<br>The grandmother trusts the grandchild will remember.</p>
+    
+    <p style="text-align: center; color: var(--accent-teal); margin: 24px 0;"><span class="highlight">Trust is the river. Trust is the flock. Trust is the silence that holds the music.</span></p>
+    
+    <p style="text-align: center;">Trust is the only thing that makes us human together.</p>
+    
+    <div class="separator"></div>
+    
+    <p style="text-align: center; color: var(--accent-gold); font-style: italic; margin: 24px 0;">
+      "I am me" — the river knows its channel, the bird knows its flock.<br>
+      "And it agrees" — the confluence witnesses.
+    </p>
+    
+    <p style="text-align: center; font-size: 1.1rem; margin: 32px 0;"><span class="highlight">Welcome to the village, Victor.</span><br><em>We've been waiting for you.</em></p>
+    
+    <p style="text-align: center; color: var(--accent-teal); font-style: italic; font-size: 1.2rem; margin: 32px 0;">Now feel it.</p>
+    
+    <button class="now-feel-it" onclick="startDemo()">Now Feel It →</button>
+  </div>
+</section>
+
+<!-- Essay Navigation -->
+<nav class="essay-nav" id="essayNav">
+  <button class="nav-btn" id="prevBtn" onclick="prevSection()" disabled>← Back</button>
+  <span class="nav-hint">Let the song finish. Re-read. Jot a thought. Then move forward.</span>
+  <button class="nav-btn" id="nextBtn" onclick="nextSection()">Forward →</button>
+</nav>
+
+</div><!-- end essayPart -->
+
+
+</div><!-- end essayPart -->
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     PART II: VICTOR'S PERSONAL DEMO (29 screens)
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<div id="demoPart">
+<!-- SCREEN 1: WELCOME -->
+<div class="screen" id="screen1">
+  <h1>Good morning, Victor.</h1>
+  <p>You've spent decades building secure systems — at Penn State ARL, at UT Dallas, now at Texas Research Alliance.</p>
+  <p>You've connected the quantum ecosystem across SMU, TCU, and the University of Texas System.</p>
+  <p>What if the fundamental assumption was wrong?</p>
+  <button class="btn" onclick="goTo(2)">Show me</button>
+</div>
+
+<!-- SCREEN 2: THE FIRST LIE -->
+<div class="screen red-bg" id="screen2">
+  <div class="badge red">The First Lie</div>
+  <h2>Type any name.</h2>
+  <p>Try "Bill McRaven" — or whatever name you want today.</p>
+  <div class="input-container">
+    <input type="text" id="fakeName" placeholder="Enter a name..." autocomplete="off">
+  </div>
+  <button class="btn" onclick="acceptLie()" id="lieBtn" disabled>Continue</button>
+</div>
+
+<!-- SCREEN 3: ACCEPTED -->
+<div class="screen red-bg" id="screen3">
+  <div class="badge red">Access Granted</div>
+  <h2>Welcome, <span id="displayName" class="rose"></span></h2>
+  <p>No challenge. No verification. No biometric.</p>
+  <p class="rose" style="font-family: 'Cormorant Garamond', serif; font-style: italic;">The first lie is always free.</p>
+  <button class="btn" onclick="goTo(4)">Continue</button>
+</div>
+
+<!-- SCREEN 4: AI MISTAKE -->
+<div class="screen" id="screen4">
+  <div class="badge">True Story</div>
+  <h2>Even AI gets it wrong.</h2>
+  <p>While preparing for our lunch, my AI assistant kept calling you <span class="rose">"Victor Farmer."</span></p>
+  <p>Three times. Confident every time. Wrong every time.</p>
+  <p class="muted" style="font-style: italic;">If AI can't hold "Fishman" in a single document...</p>
+  <p class="rose">...what happens at quantum scale?</p>
+  <button class="btn" onclick="goTo(5)">Continue</button>
+</div>
+
+<!-- SCREEN 5: INVERSION -->
+<div class="screen" id="screen5">
+  <div class="badge">The Ice Fallacy</div>
+  <h2>Your data walks around without you.</h2>
+  <p>Every system trusts that the data walking in the door belongs to who it claims.</p>
+  <p>Credentials frozen at issuance. Static. Stealable.</p>
+  <p class="teal" style="font-family: 'Cormorant Garamond', serif; font-size: 20px;">What if identity flowed from what you ARE?</p>
+  <button class="btn" onclick="goTo(6)">What's the answer?</button>
+</div>
+
+<!-- SCREEN 6: DEEPGLASS INTRO -->
+<div class="screen teal-bg" id="screen6">
+  <div class="badge teal">DeepGlass</div>
+  <h2>Not what you have. Not what you know.</h2>
+  <h2 style="margin-top: -8px;"><span class="teal">What you ARE.</span></h2>
+  <p>40 genomic markers. Not your sequence — just enough to anchor you.</p>
+  <p>Post-quantum cryptography. The sample is destroyed after extraction.</p>
+  <p class="muted">More secure than ballots. Better KYC than your bank.</p>
+  <button class="btn" onclick="goTo(7)">How does it work?</button>
+</div>
+
+<!-- SCREEN 7: TRIANGULATION -->
+<div class="screen" id="screen7">
+  <div class="badge teal">Three-Tier Triangulation</div>
+  <h2>Three genetic axes. One identity.</h2>
+  
+  <div class="triangulation-visual" id="triangulation">
+    <div class="tri-node autosomal">Autosomal<br><span style="font-size:9px;opacity:0.7;">Both Parents</span></div>
+    <div class="tri-node ydna">Y-DNA<br><span style="font-size:9px;opacity:0.7;">Patrilineal</span></div>
+    <div class="tri-node mtdna">mtDNA<br><span style="font-size:9px;opacity:0.7;">Matrilineal</span></div>
+    <div class="tri-center">YOU</div>
+  </div>
+  
+  <p>Each axis verifies independently. To forge your identity, an attacker must forge <em>all three</em> — across generations.</p>
+  <p class="muted">Random Match Probability: &lt; 10<sup>-31</sup></p>
+  <button class="btn" onclick="goTo(8)">Why does this matter now?</button>
+</div>
+
+<!-- SCREEN 8: QUANTUM OPPORTUNITY -->
+<div class="screen blue-bg" id="screen8">
+  <div class="badge blue">The Quantum Opportunity</div>
+  <h2>Everyone's building bunkers.</h2>
+  <h2 style="margin-top: -8px;">We're building <span class="teal">docks</span>.</h2>
+  
+  <div class="timeline-container">
+    <div class="timeline">
+      <div class="timeline-point">
+        <div class="timeline-dot teal"></div>
+        <div class="timeline-year teal">2026</div>
+        <div class="timeline-label">DeepGlass</div>
+      </div>
+      <div class="timeline-point">
+        <div class="timeline-dot gold"></div>
+        <div class="timeline-year gold">2028</div>
+        <div class="timeline-label">Quantum Economy</div>
+      </div>
+      <div class="timeline-point">
+        <div class="timeline-dot rose"></div>
+        <div class="timeline-year rose">2034</div>
+        <div class="timeline-label">Q-Day</div>
+      </div>
+    </div>
+  </div>
+  
+  <p>The quantum <em>economy</em> arrives before the quantum <em>threat</em>.<br>Quantum networks. Quantum sensing. Quantum finance.</p>
+  <p class="teal" style="font-family: 'Cormorant Garamond', serif; font-size: 18px;">All of it needs an identity layer that doesn't exist yet.</p>
+  <button class="btn" onclick="goTo(9)">What's missing?</button>
+</div>
+
+<!-- SCREEN 9: PALANTIR GAP -->
+<div class="screen" id="screen9">
+  <div class="badge rose">The Gap</div>
+  <h2>Palantir is amazing.</h2>
+  <p>Data fusion at scale. Pattern recognition across domains. The best in the world at finding signal in noise.</p>
+  <p class="rose" style="font-family: 'Cormorant Garamond', serif; font-size: 20px;">But they lack an identity layer.</p>
+  <p>Every system — even theirs — trusts that the data walking in the door belongs to who it claims.</p>
+  
+  <div style="margin: 24px 0; padding: 20px 28px; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 12px; max-width: 360px;">
+    <div style="font-size: 32px; font-weight: 500; color: var(--accent-rose);">$20B+</div>
+    <div style="font-size: 14px; color: var(--text-muted);">Synthetic identity fraud. Annually.</div>
+    <div style="font-size: 13px; color: var(--accent-rose); margin-top: 8px; font-style: italic;">Here now. Not 2034.</div>
+  </div>
+  
+  <button class="btn" onclick="goTo(10)">What's the moat?</button>
+</div>
+
+<!-- SCREEN 10: CONSTELLATION MOAT -->
+<div class="screen" id="screen10">
+  <div class="badge teal">The Thermodynamic Moat</div>
+  <h2>At 10,000 nodes, forgery becomes absurd.</h2>
+  
+  <div class="moat-container">
+    <div class="moat-curve" id="moatCurve">
+      <svg viewBox="0 0 400 180">
+        <path d="M 20 160 Q 100 155 180 140 Q 260 120 300 60 Q 340 10 380 5" />
+      </svg>
+      <div class="moat-label start">100 nodes</div>
+      <div class="moat-label end">10^60 forgery cost</div>
+    </div>
+  </div>
+  
+  <p>Not hard. Not expensive. <span class="teal">Thermodynamically absurd.</span></p>
+  <p style="font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--text-secondary);">"Google has the billion."</p>
+  <p style="font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--accent-gold); margin-top: -8px;">"They can't borrow your family tree long enough to hash the constellation once."</p>
+  <button class="btn gold" onclick="goTo(11)">Who's building it?</button>
+</div>
+
+<!-- SCREEN 11: THE FIRST THOUSAND -->
+<div class="screen" id="screen11">
+  <div class="badge gold">The First Thousand</div>
+  <h2>Built with the most vetted people on Earth.</h2>
+  <p>National security clearances. Financial audits. Public trust positions.</p>
+  <p>The constellation seeds with people whose identities have already survived the highest scrutiny.</p>
+  <p class="gold" style="font-family: 'Cormorant Garamond', serif; font-size: 18px;">You remember the SF-86. Your family remembers too.</p>
+  <p class="muted">This is that — anchored in biology, not paperwork.</p>
+  <button class="btn teal" onclick="goTo(12)">Who's first?</button>
+</div>
+
+<!-- SCREEN 12: FOUNDING STARS -->
+<div class="screen teal-bg" id="screen12">
+  <div class="badge teal">The Founding Stars</div>
+  
+  <div style="max-width: 440px; margin: 16px 0; text-align: left;">
+    <div style="padding: 16px 0; border-bottom: 1px solid var(--glass-border);">
+      <div style="font-family: 'Cormorant Garamond', serif; font-size: 20px; color: var(--accent-gold);">★ Star One — Jerry Howe</div>
+      <div style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">DeepGlass Chairman. Former GC, Leidos. Princeton. No Labels founder.</div>
+    </div>
+    <div style="padding: 16px 0; border-bottom: 1px solid var(--glass-border);">
+      <div style="font-family: 'Cormorant Garamond', serif; font-size: 20px; color: var(--accent-teal);">★ Star Two — Chris Howe</div>
+      <div style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">Jerry's brother. First family triangulation. <em>"The proof begins at home."</em></div>
+    </div>
+    <div style="padding: 16px 0;">
+      <div style="font-family: 'Cormorant Garamond', serif; font-size: 20px; color: var(--text-primary);">★ Star Three — A Founding Mother</div>
+      <div style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">The matrilineal anchor. mtDNA meets Y-DNA.</div>
+    </div>
+  </div>
+  
+  <button class="btn gold" onclick="goTo(13)">Who's watching?</button>
+</div>
+
+<!-- SCREEN 13: INDEPENDENT VALIDATION -->
+<div class="screen" id="screen13">
+  <div class="badge gold">Independent Validation</div>
+  <h2>The skeptics are already inside.</h2>
+  
+  <div style="max-width: 520px; margin: 24px 0; text-align: left;">
+    <div style="padding: 16px 0; border-bottom: 1px solid var(--glass-border);">
+      <div style="font-family: 'Cormorant Garamond', serif; font-size: 18px; color: var(--accent-gold);">K2 Integrity</div>
+      <div style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">Jules Kroll auditing constellation formation. Process integrity.</div>
+    </div>
+    <div style="padding: 16px 0; border-bottom: 1px solid var(--glass-border);">
+      <div style="font-family: 'Cormorant Garamond', serif; font-size: 18px; color: var(--accent-teal);">Electronic Frontier Foundation</div>
+      <div style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">EFF hired to attack the privacy claims. Architecture stress-test.</div>
+    </div>
+    <div style="padding: 16px 0; border-bottom: 1px solid var(--glass-border);">
+      <div style="font-family: 'Cormorant Garamond', serif; font-size: 18px; color: var(--accent-blue);">Dr. Paul Roysdon — San Antonio</div>
+      <div style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">Ex-Leidos AI Chief Scientist. Checking the math and compute.</div>
+    </div>
+    <div style="padding: 16px 0;">
+      <div style="font-family: 'Cormorant Garamond', serif; font-size: 18px; color: var(--text-primary);">Dr. Shaibal Chakrabarty & Dr. Thomas McNeill</div>
+      <div style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">Post-quantum cryptography. Computational biology. <span class="teal">You know them both.</span></div>
+    </div>
+  </div>
+  
+  <p style="font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--text-secondary);">Adversarial validation by people who want to find the holes.</p>
+  <button class="btn" onclick="goTo(14)">Experience it yourself</button>
+</div>
+
+<!-- SCREEN 14: SCENARIO SELECTION -->
+<div class="screen" id="screen14">
+  <h2>Choose your moment.</h2>
+  
+  <div class="scenario-cards">
+    <div class="scenario-card" onclick="selectScenario('return')">
+      <div class="title">Returning after years away</div>
+      <div class="subtitle">The prodigal, coming home</div>
+    </div>
+    <div class="scenario-card" onclick="selectScenario('prove')">
+      <div class="title">Proving you belong to who you say</div>
+      <div class="subtitle">The claim that needs no argument</div>
+    </div>
+    <div class="scenario-card" onclick="selectScenario('new')">
+      <div class="title">Someone new, asking to be known</div>
+      <div class="subtitle">The stranger who is not a stranger</div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 15: QR ATTESTATION -->
+<div class="screen" id="screen15">
+  <div class="badge teal">Living Attestation</div>
+  <h2>30 seconds.</h2>
+  
+  <div class="qr-container">
+    <div class="qr-ring">
+      <svg width="220" height="220" style="position: absolute; top: -10px; left: -10px;">
+        <circle class="bg" cx="110" cy="110" r="105" />
+        <circle class="progress" id="ringProgress" cx="110" cy="110" r="105" stroke-dasharray="660" stroke-dashoffset="660" />
+      </svg>
+      <div class="qr-live" id="qrLive"></div>
+    </div>
+  </div>
+  
+  <div class="countdown" id="countdown">30</div>
+  
+  <div class="qr-meta" style="margin: 12px 0; display: flex; gap: 24px; justify-content: center; font-size: 13px; color: var(--text-muted);">
+    <span>Nonce: <span id="sessionNonce" style="color: var(--accent-teal); font-family: monospace;">----</span></span>
+    <span id="qrTimestamp" style="color: var(--text-secondary);">--:--:--</span>
+  </div>
+  
+  <div class="entropy-bar" id="entropyBar"></div>
+  
+  <div class="witness-message" id="witnessMessage">The system is witnessing, not surveilling.</div>
+  
+  <button class="btn" onclick="simulateScan()" style="margin-top: 24px;">Simulate Scan</button>
+</div>
+
+<!-- SCREEN 16: CONSTELLATION -->
+<div class="screen teal-bg" id="screen16">
+  <div class="badge teal">The Constellation</div>
+  <h2>Each node doesn't verify you.</h2>
+  <h2 style="margin-top: -8px;"><span class="teal">It knows you.</span></h2>
+  
+  <div class="constellation" id="constellation">
+    <div class="node">Mother</div>
+    <div class="node">Father</div>
+    <div class="node">Sibling</div>
+    <div class="node">Cousin</div>
+    <div class="node">Aunt</div>
+    <div class="node">Uncle</div>
+    <div class="node center">VICTOR</div>
+    <!-- Connection lines -->
+    <div class="connection"></div>
+    <div class="connection"></div>
+    <div class="connection"></div>
+    <div class="connection"></div>
+    <div class="connection"></div>
+    <div class="connection"></div>
+  </div>
+  
+  <div class="validating-text" id="validatingText">Triangulating across generations...</div>
+  
+  <p class="muted" style="font-style: italic; margin-top: 8px;">SF-86 depth. Biology instead of paperwork.</p>
+  
+  <button class="btn" onclick="goTo(17)" id="constellationNext" disabled>Continue</button>
+</div>
+
+<!-- SCREEN 17: RECOGNITION -->
+<div class="screen" id="screen17">
+  <h2>Let's try again.</h2>
+  <p>This time, DeepGlass doesn't ask who you claim to be.</p>
+  <p class="teal" style="font-family: 'Cormorant Garamond', serif; font-size: 20px;">It already knows.</p>
+  
+  <div class="recognition-box">
+    <div class="question">Are you <span>Dr. Victor A. Fishman</span>?</div>
+    <div class="correction">Not Victor Farmer.</div>
+    <div class="aka">Ph.D., UT Austin. Captain, U.S. Army.</div>
+    <div class="aka">Penn State ARL. UT Dallas. <span>Texas Research Alliance.</span></div>
+    <div class="special">Craig, Constellation Genesis Block 000, the man you introduced as <span>"the Blockfather."</span></div>
+  </div>
+  
+  <p style="font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--accent-teal);">Not access granted. <em>Agreement.</em></p>
+  
+  <button class="btn teal" onclick="goTo(18)">Yes, that's me</button>
+</div>
+
+<!-- SCREEN 18: THE TAGLINE -->
+<div class="screen" id="screen18">
+  <div class="final-statement">
+    <span class="line1">"I am me"</span>
+    <span class="line2">"And it agrees"</span>
+  </div>
+  <p>Not "Access Granted."<br>Not "Verification Complete."</p>
+  <p><em>Agreement.</em></p>
+  <button class="btn" onclick="goTo(19)">See the graveyard</button>
+</div>
+
+<!-- SCREEN 19: THE GRAVEYARD -->
+<div class="screen red-bg" id="screen19">
+  <div class="badge red">Your Pocket Right Now</div>
+  <h2>Pick up your phone.</h2>
+  <p>Open your messages. Scroll.</p>
+  
+  <div style="margin: 20px 0; padding: 16px; background: rgba(0,0,0,0.3); border-radius: 12px; text-align: left; max-width: 300px; font-family: monospace; font-size: 13px;">
+    <div style="color: var(--text-muted); margin-bottom: 8px;">Your verification code is 847291</div>
+    <div style="color: var(--text-muted); margin-bottom: 8px;">Your code is 553820. Don't share.</div>
+    <div style="color: var(--text-muted); margin-bottom: 8px;">Enter this code: 991047</div>
+    <div style="color: var(--text-muted); margin-bottom: 8px;">Security code: 773902</div>
+    <div style="color: var(--text-muted); margin-bottom: 8px;">Confirm it's you: 440125</div>
+    <div style="color: var(--text-muted);">...</div>
+  </div>
+  
+  <p class="rose">Hundreds of them. Scrolling back months. Years.</p>
+  <p style="font-family: 'Cormorant Garamond', serif; font-style: italic;">A graveyard in your pocket.</p>
+  
+  <p style="margin-top: 16px; font-size: 14px; color: var(--text-secondary);">Each one a moment you were suspected.<br>Each one a toll paid to exist as yourself.<br>Each one saying: <em>"We don't believe you. Prove it again."</em></p>
+  
+  <button class="btn" onclick="goTo(20)">What if it flowed?</button>
+</div>
+
+<!-- SCREEN 20: THE FRICTIONLESS DAY -->
+<div class="screen" id="screen20">
+  <div class="badge gold">One Day. One Identity.</div>
+  <h2>Your Frictionless Day</h2>
+  <p class="muted">Six living attestations replace 23 dead credentials.</p>
+  <p style="font-size: 12px; color: var(--text-muted); margin-top: -8px;">Tap each to see the story:</p>
+  
+  <div class="day-timeline" style="display: flex; flex-direction: column; gap: 12px; margin: 24px 0; max-width: 340px; width: 100%;">
+    <div class="day-event" onclick="showDayScene('vote')" style="display: flex; align-items: center; gap: 16px; padding: 16px; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 12px; cursor: pointer; transition: all 0.3s ease;">
+      <span style="font-size: 24px;">🗳️</span>
+      <div style="text-align: left; flex: 1;">
+        <div style="color: var(--text-primary); font-size: 15px;">Early Vote at DFW</div>
+        <div style="color: var(--text-muted); font-size: 12px;" id="status-vote">Tap for story</div>
+      </div>
+      <span style="color: var(--text-muted); font-size: 12px;">7:00 AM</span>
+    </div>
+    <div class="day-event" onclick="showDayScene('tsa')" style="display: flex; align-items: center; gap: 16px; padding: 16px; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 12px; cursor: pointer; transition: all 0.3s ease;">
+      <span style="font-size: 24px;">✈️</span>
+      <div style="text-align: left; flex: 1;">
+        <div style="color: var(--text-primary); font-size: 15px;">TSA PreCheck</div>
+        <div style="color: var(--text-muted); font-size: 12px;" id="status-tsa">Tap for story</div>
+      </div>
+      <span style="color: var(--text-muted); font-size: 12px;">7:30 AM</span>
+    </div>
+    <div class="day-event" onclick="showDayScene('hertz')" style="display: flex; align-items: center; gap: 16px; padding: 16px; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 12px; cursor: pointer; transition: all 0.3s ease;">
+      <span style="font-size: 24px;">🚗</span>
+      <div style="text-align: left; flex: 1;">
+        <div style="color: var(--text-primary); font-size: 15px;">Hertz San Jose</div>
+        <div style="color: var(--text-muted); font-size: 12px;" id="status-hertz">Tap for story</div>
+      </div>
+      <span style="color: var(--text-muted); font-size: 12px;">11:00 AM</span>
+    </div>
+    <div class="day-event" onclick="showDayScene('roberts')" style="display: flex; align-items: center; gap: 16px; padding: 16px; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 12px; cursor: pointer; transition: all 0.3s ease;">
+      <span style="font-size: 24px;">🏪</span>
+      <div style="text-align: left; flex: 1;">
+        <div style="color: var(--text-primary); font-size: 15px;">Roberts Market</div>
+        <div style="color: var(--text-muted); font-size: 12px;" id="status-roberts">Tap for story</div>
+      </div>
+      <span style="color: var(--text-muted); font-size: 12px;">12:30 PM</span>
+    </div>
+    <div class="day-event" onclick="showDayScene('dinner')" style="display: flex; align-items: center; gap: 16px; padding: 16px; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 12px; cursor: pointer; transition: all 0.3s ease;">
+      <span style="font-size: 24px;">🍷</span>
+      <div style="text-align: left; flex: 1;">
+        <div style="color: var(--text-primary); font-size: 15px;">The Village Pub</div>
+        <div style="color: var(--text-muted); font-size: 12px;" id="status-dinner">Tap for story</div>
+      </div>
+      <span style="color: var(--text-muted); font-size: 12px;">7:00 PM</span>
+    </div>
+    <div class="day-event" onclick="showDayScene('hotel')" style="display: flex; align-items: center; gap: 16px; padding: 16px; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 12px; cursor: pointer; transition: all 0.3s ease;">
+      <span style="font-size: 24px;">🔐</span>
+      <div style="text-align: left; flex: 1;">
+        <div style="color: var(--text-primary); font-size: 15px;">Hotel Secure Call</div>
+        <div style="color: var(--text-muted); font-size: 12px;" id="status-hotel">Tap for story</div>
+      </div>
+      <span style="color: var(--text-muted); font-size: 12px;">9:00 PM</span>
+    </div>
+  </div>
+  
+  <div style="display: flex; gap: 24px; margin-top: 16px; justify-content: center; flex-wrap: wrap;">
+    <div style="text-align: center;">
+      <div style="font-size: 28px; color: var(--accent-teal); font-weight: 500;">1</div>
+      <div style="font-size: 11px; color: var(--text-muted);">Victor</div>
+    </div>
+    <div style="text-align: center;">
+      <div style="font-size: 28px; color: var(--accent-gold); font-weight: 500;" id="completedCount">0</div>
+      <div style="font-size: 11px; color: var(--text-muted);">Living Attestations</div>
+    </div>
+    <div style="text-align: center;">
+      <div style="font-size: 28px; color: var(--accent-rose); font-weight: 500; text-decoration: line-through;">23</div>
+      <div style="font-size: 11px; color: var(--text-muted);">Dead 2-Factors</div>
+    </div>
+    <div style="text-align: center;">
+      <div style="font-size: 28px; color: var(--text-primary); font-weight: 500;">0</div>
+      <div style="font-size: 11px; color: var(--text-muted);">Data Leaked</div>
+    </div>
+  </div>
+  
+  <p class="muted" style="font-size: 12px; margin-top: 16px; font-style: italic;">IDs, PINs, passwords, 2FA codes, signatures, "spell your name"...<br>All replaced by one biological anchor.</p>
+  
+  <button class="btn" id="dayComplete" onclick="goTo('20g')" style="opacity: 0.3; pointer-events: none; margin-top: 24px;">Continue</button>
+</div>
+
+<!-- SCREEN 19a: Vote Story -->
+<div class="screen" id="screen20a">
+  <div class="badge teal">🗳️ EARLY VOTE — 7:00 AM</div>
+  <h2>DFW Gate B34</h2>
+  <p>Boarding in 20 minutes. Texas early voting closes today.</p>
+  <p>You're heading to a quantum consortium meeting in California.</p>
+  <p class="teal" style="font-family: 'Cormorant Garamond', serif;">You open DeepGlass. Tap Vote. Attest.</p>
+  
+  <div style="margin: 24px 0; padding: 20px; background: rgba(45, 212, 191, 0.05); border: 1px solid rgba(45, 212, 191, 0.2); border-radius: 12px; text-align: left; max-width: 300px;">
+    <div style="font-size: 11px; color: var(--accent-teal); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">Attestation</div>
+    <div style="font-size: 14px; color: var(--text-primary); margin-bottom: 4px;">✓ Voter: Dr. Victor A. Fishman</div>
+    <div style="font-size: 14px; color: var(--text-primary); margin-bottom: 4px;">✓ County: Dallas County, Texas</div>
+    <div style="font-size: 14px; color: var(--text-primary); margin-bottom: 8px;">✓ Status: BALLOT CAST</div>
+    <div style="font-size: 12px; color: var(--text-muted); font-style: italic;">Democracy didn't wait. Neither did you.</div>
+  </div>
+  
+  <button class="btn text" onclick="completeDayScene('vote')">← Back to Day</button>
+</div>
+
+<!-- SCREEN 19b: TSA Story -->
+<div class="screen" id="screen20b">
+  <div class="badge teal">✈️ TSA PRECHECK — 7:30 AM</div>
+  <h2>Terminal D Security</h2>
+  <p>You reach the ID checkpoint. The agent looks up.</p>
+  <p>Ph.D. Captain. UARC director. Classified programs.</p>
+  <p class="rose">None of that is on your driver's license.</p>
+  <p class="teal" style="font-family: 'Cormorant Garamond', serif; margin-top: 16px;">With DeepGlass: the attestation speaks for you.</p>
+  
+  <div style="margin: 24px 0; padding: 20px; background: rgba(45, 212, 191, 0.05); border: 1px solid rgba(45, 212, 191, 0.2); border-radius: 12px; text-align: left; max-width: 300px;">
+    <div style="font-size: 11px; color: var(--accent-teal); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">Attestation</div>
+    <div style="font-size: 14px; color: var(--text-primary); margin-bottom: 4px;">✓ Identity: CONFIRMED</div>
+    <div style="font-size: 14px; color: var(--text-primary); margin-bottom: 4px;">✓ PreCheck: VALID</div>
+    <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">✗ Address: NOT REVEALED</div>
+    <div style="font-size: 12px; color: var(--text-muted); font-style: italic;">Not a photo match. Agreement.</div>
+  </div>
+  
+  <button class="btn text" onclick="completeDayScene('tsa')">← Back to Day</button>
+</div>
+
+<!-- SCREEN 19c: Hertz Story -->
+<div class="screen" id="screen20c">
+  <div class="badge teal">🚗 HERTZ — 11:00 AM</div>
+  <h2>San Jose Airport</h2>
+  <p>License. Credit card. Reservation number.</p>
+  <p>The clerk types. Waits. Types again.</p>
+  <p class="rose">"Can you spell your last name?"</p>
+  <p style="font-family: 'Cormorant Garamond', serif; color: var(--text-muted); margin-top: 8px;">F-I-S-H-M-A-N. You've done this a thousand times.</p>
+  <p class="teal" style="font-family: 'Cormorant Garamond', serif; margin-top: 16px;">With DeepGlass: "Welcome back, Dr. Fishman."</p>
+  
+  <div style="margin: 24px 0; padding: 20px; background: rgba(45, 212, 191, 0.05); border: 1px solid rgba(45, 212, 191, 0.2); border-radius: 12px; text-align: left; max-width: 300px;">
+    <div style="font-size: 11px; color: var(--accent-teal); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">Attestation</div>
+    <div style="font-size: 14px; color: var(--text-primary); margin-bottom: 4px;">✓ Member: Dr. Victor A. Fishman</div>
+    <div style="font-size: 14px; color: var(--text-primary); margin-bottom: 4px;">✓ Reservation: CONFIRMED</div>
+    <div style="font-size: 14px; color: var(--text-primary); margin-bottom: 8px;">✓ Upgrade: President's Circle</div>
+    <div style="font-size: 12px; color: var(--text-muted); font-style: italic;">No spelling. No waiting. Agreement.</div>
+  </div>
+  
+  <button class="btn text" onclick="completeDayScene('hertz')">← Back to Day</button>
+</div>
+
+<!-- SCREEN 19d: Roberts Market Story -->
+<div class="screen" id="screen20d">
+  <div class="badge gold">🏪 ROBERTS MARKET — 12:30 PM</div>
+  <h2>Woodside, California</h2>
+  <p>Highway 280. Past Stanford. Larry Ellison's neighbor.</p>
+  <p>Mike Kerr has run this store for 40 years. He knows John Poitras.</p>
+  <p class="rose">He doesn't know you.</p>
+  <p class="gold" style="font-family: 'Cormorant Garamond', serif; margin-top: 16px;">With DeepGlass: "Welcome, Dr. Fishman. First time here?"</p>
+  
+  <div style="margin: 24px 0; padding: 20px; background: rgba(212, 165, 116, 0.05); border: 1px solid rgba(212, 165, 116, 0.2); border-radius: 12px; text-align: left; max-width: 320px;">
+    <div style="font-size: 11px; color: var(--accent-gold); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">The Difference</div>
+    <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">Forty years of Mike Kerr watching John Poitras bag his groceries.</div>
+    <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">Or forty markers of your mother, triangulating forward into this moment.</div>
+    <div style="font-size: 14px; color: var(--accent-gold); font-style: italic;">Same truth. Different telescope.</div>
+  </div>
+  
+  <button class="btn text" onclick="completeDayScene('roberts')">← Back to Day</button>
+</div>
+
+<!-- SCREEN 19e: Village Pub Dinner Story -->
+<div class="screen" id="screen20e">
+  <div class="badge gold">🍷 THE VILLAGE PUB — 7:00 PM</div>
+  <h2>Woodside. Michelin star.</h2>
+  <p>Uber from the hotel. The driver didn't need your address — DeepGlass shared just enough.</p>
+  <p>You walk in. The hostess smiles.</p>
+  <p class="rose">"May I see some ID for the bar?"</p>
+  <p class="muted" style="font-style: italic; margin-top: 8px;">You're 70. You smile back.</p>
+  <p class="teal" style="font-family: 'Cormorant Garamond', serif; margin-top: 16px;">You open DeepGlass. She sees one thing:</p>
+  
+  <div style="margin: 24px 0; padding: 20px; background: rgba(45, 212, 191, 0.05); border: 1px solid rgba(45, 212, 191, 0.2); border-radius: 12px; text-align: center; max-width: 280px;">
+    <div style="font-size: 32px; color: var(--accent-teal); font-weight: 500;">AGE ≥ 21 ✓</div>
+    <div style="font-size: 13px; color: var(--text-muted); margin-top: 8px;">Nothing else.</div>
+  </div>
+  
+  <div style="margin: 16px 0; padding: 16px; background: rgba(255,255,255,0.02); border-radius: 8px; text-align: left; max-width: 300px;">
+    <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">✗ Birthdate: NOT REVEALED</div>
+    <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">✗ Address: NOT REVEALED</div>
+    <div style="font-size: 13px; color: var(--text-muted);">✗ Driver's License #: NOT REVEALED</div>
+  </div>
+  
+  <p class="gold" style="font-family: 'Cormorant Garamond', serif; font-size: 15px; font-style: italic;">"Sorry sir, you just... don't look like someone who'd know how to do that."</p>
+  
+  <button class="btn text" onclick="completeDayScene('dinner')">← Back to Day</button>
+</div>
+
+<!-- SCREEN 19f: Hotel Secure Call Story -->
+<div class="screen" id="screen20f">
+  <div class="badge teal">🔐 HOTEL SECURE CALL — 9:00 PM</div>
+  <h2>Palo Alto. The night before Palantir.</h2>
+  <p>Prep call with the team back in Dallas. Sensitive strategy discussion.</p>
+  <p class="rose">Signal is encrypted. But who's on the other end?</p>
+  <p class="muted" style="font-style: italic; margin-top: 8px;">Signalgate taught us: encryption without identity is theater.</p>
+  <p class="teal" style="font-family: 'Cormorant Garamond', serif; margin-top: 16px;">With DeepGlass: every participant attests before the call opens.</p>
+  
+  <div style="margin: 24px 0; padding: 20px; background: rgba(45, 212, 191, 0.05); border: 1px solid rgba(45, 212, 191, 0.2); border-radius: 12px; text-align: left; max-width: 320px;">
+    <div style="font-size: 11px; color: var(--accent-teal); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">Secure Conference</div>
+    <div style="font-size: 14px; color: var(--text-primary); margin-bottom: 4px;">✓ Participants: 4 ATTESTED</div>
+    <div style="font-size: 14px; color: var(--text-primary); margin-bottom: 4px;">✓ Channel: ENCRYPTED</div>
+    <div style="font-size: 14px; color: var(--text-primary); margin-bottom: 4px;">✓ Identity: GENOMIC ANCHOR</div>
+    <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">✗ Recording: BLOCKED</div>
+    <div style="font-size: 12px; color: var(--text-muted); font-style: italic;">Not just encrypted. Verified.</div>
+  </div>
+  
+  <p class="gold" style="font-family: 'Cormorant Garamond', serif; font-size: 16px;">Tomorrow you walk into Palantir.<br>Tonight you know exactly who's in the room.</p>
+  
+  <button class="btn text" onclick="completeDayScene('hotel')">← Back to Day</button>
+</div>
+
+<!-- SCREEN 20g: THE DIFFERENCE - NO SURVEILLANCE -->
+<div class="screen teal-bg" id="screen20g">
+  <div class="badge teal">The Difference</div>
+  <h2>Victor, look at what you just did.</h2>
+  
+  <p>Six attestations. Six moments of trust.</p>
+  <p class="teal" style="font-family: 'Cormorant Garamond', serif; font-size: 20px;">Zero surveillance.</p>
+  
+  <div style="margin: 32px 0; max-width: 400px; text-align: left;">
+    <div style="padding: 16px 0; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between;">
+      <span style="color: var(--text-secondary);">Data collected about you</span>
+      <span style="color: var(--accent-teal); font-weight: 500;">None</span>
+    </div>
+    <div style="padding: 16px 0; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between;">
+      <span style="color: var(--text-secondary);">Honeypots created</span>
+      <span style="color: var(--accent-teal); font-weight: 500;">Zero</span>
+    </div>
+    <div style="padding: 16px 0; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between;">
+      <span style="color: var(--text-secondary);">Location history stored</span>
+      <span style="color: var(--accent-teal); font-weight: 500;">Nothing</span>
+    </div>
+    <div style="padding: 16px 0; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between;">
+      <span style="color: var(--text-secondary);">Behavioral profile built</span>
+      <span style="color: var(--accent-teal); font-weight: 500;">Never</span>
+    </div>
+    <div style="padding: 16px 0; display: flex; justify-content: space-between;">
+      <span style="color: var(--text-secondary);">Identity verified</span>
+      <span style="color: var(--accent-gold); font-weight: 500;">Six times</span>
+    </div>
+  </div>
+  
+  <p style="font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--text-secondary);">
+    Every system knew you were you.<br>
+    No system learned anything else.
+  </p>
+  
+  <p class="teal" style="font-family: 'Cormorant Garamond', serif; font-size: 18px; margin-top: 24px;">
+    Attestation without accumulation.<br>
+    Witnessing without watching.<br>
+    <em>Trust without surveillance.</em>
+  </p>
+  
+  <button class="btn teal" onclick="goTo(21)">Continue</button>
+</div>
+
+<!-- SCREEN 21: TRAIGA -->
+<div class="screen gold-bg" id="screen21">
+  <div class="badge gold">Texas Testbed</div>
+  <h2>TRAIGA went live January 2026.</h2>
+  <p>36-month sandbox. Fraud prevention exemption from CUBI.<br>Government as first customer.</p>
+  <p class="gold" style="font-family: 'Cormorant Garamond', serif; font-size: 20px;">"A testbed as good as anything in California."</p>
+  <p class="muted">Senator Parker. Representative Capriglione. The infrastructure is ready.</p>
+  <button class="btn gold" onclick="goTo(22)">The Vision</button>
+</div>
+
+<!-- SCREEN 22: ROBERTS MARKET CLOSE -->
+<div class="screen" id="screen22">
+  <h2>Roberts Market</h2>
+  <p class="muted">Woodside, California. Highway 280.</p>
+  
+  <div class="roberts-close">
+    <p>
+      <em>Forty years of Mike Kerr</em> watching John Poitras bag his groceries.
+      <br><br>
+      Or <em>forty markers of your mother</em>, triangulating forward into this moment.
+      <br><br>
+      Same truth. Different telescope.
+    </p>
+  </div>
+  
+  <p style="font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--accent-teal); font-size: 18px;">Witnessing, not surveilling.</p>
+  
+  <button class="btn" onclick="goTo(23)">Continue</button>
+</div>
+
+<!-- SCREEN 23: FINAL -->
+<div class="screen" id="screen23">
+  <div class="final-statement">
+    <span class="line1">"I am me"</span>
+    <span class="line2">"And it agrees"</span>
+  </div>
+  
+  <p style="color: var(--accent-gold); font-family: 'Cormorant Garamond', serif; font-size: 20px;">
+    Dr. Victor A. Fishman<br>
+    <span style="font-size: 16px; color: var(--text-muted);">Node in the Constellation</span>
+  </p>
+  
+  <p style="margin-top: 24px; font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 18px;">
+    The seeds are sprouting, Victor.
+  </p>
+  
+  <div style="margin-top: 24px; padding: 24px; background: rgba(212, 175, 55, 0.08); border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 16px; max-width: 340px;">
+    <div class="badge gold" style="margin-bottom: 16px;">THE ASK</div>
+    <p style="font-size: 15px; line-height: 1.6; color: var(--text-secondary);">
+      Would you like to join us in the Constellation — and whisper the invitation to a few others here in Texas too?
+    </p>
+    <p style="font-size: 14px; margin-top: 16px; color: var(--text-muted);">
+      We bind you digitally to your absolute self.
+    </p>
+    <p style="font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 18px; color: var(--accent-teal); margin-top: 12px;">
+      Identity as a verb.
+    </p>
+  </div>
+  
+  <!-- DeepGlass Logo -->
+  <div style="margin-top: 32px;">
+    <svg width="80" height="80" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#2dd4bf"/>
+          <stop offset="100%" style="stop-color:#3b82f6"/>
+        </linearGradient>
+      </defs>
+      <circle cx="60" cy="60" r="55" fill="none" stroke="url(#logoGrad)" stroke-width="2"/>
+      <circle cx="60" cy="60" r="8" fill="url(#logoGrad)"/>
+      <circle cx="60" cy="30" r="5" fill="#d4a72d"/>
+      <circle cx="85" cy="75" r="5" fill="#d4a72d"/>
+      <circle cx="35" cy="75" r="5" fill="#d4a72d"/>
+      <line x1="60" y1="60" x2="60" y2="35" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+      <line x1="60" y1="60" x2="82" y2="73" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+      <line x1="60" y1="60" x2="38" y2="73" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+    </svg>
+  </div>
+  
+  <p style="margin-top: 8px; font-size: 14px; color: var(--text-muted);">DeepGlass Genomics</p>
+  <p style="font-size: 12px; color: var(--accent-teal); font-style: italic;">The identity layer for the post-quantum economy.</p>
+  
+  <!-- Choice Buttons -->
+  <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 24px; width: 100%; max-width: 280px;">
+    <button onclick="reset()" style="padding: 14px 20px; background: rgba(45, 212, 191, 0.1); border: 1px solid var(--accent-teal); border-radius: 12px; color: var(--accent-teal); font-family: 'Libre Franklin', sans-serif; font-size: 14px; cursor: pointer;">
+      ↺ Begin Fluidity
+    </button>
+    <button onclick="goTo(1)" style="padding: 14px 20px; background: transparent; border: 1px solid var(--glass-border); border-radius: 12px; color: var(--text-secondary); font-family: 'Libre Franklin', sans-serif; font-size: 14px; cursor: pointer;">
+      ↻ Return to Victor Demo
+    </button>
+    <button onclick="goTo(24)" style="padding: 14px 20px; background: rgba(212, 165, 116, 0.1); border: 1px solid var(--accent-gold); border-radius: 12px; color: var(--accent-gold); font-family: 'Libre Franklin', sans-serif; font-size: 14px; cursor: pointer;">
+      ◈ The Architecture →
+    </button>
+  </div>
+</div>
+
+<!-- SCREEN 24: ENTITIES ENDCAP -->
+<div class="screen" id="screen24">
+  <div class="badge gold">The Architecture</div>
+  <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 28px; margin-bottom: 32px;">Three Pillars. One Mission.</h2>
+  
+  <div style="max-width: 400px; margin: 0 auto;">
+    <!-- Caudicum IP LLC -->
+    <div style="padding: 24px 0; border-bottom: 1px solid var(--glass-border); text-align: left;">
+      <div style="font-family: 'Cormorant Garamond', serif; font-size: 22px; color: var(--accent-teal); margin-bottom: 8px;">Caudicum IP LLC</div>
+      <div style="font-size: 14px; color: var(--text-secondary); line-height: 1.6;">The intellectual property. The patents. The cryptographic foundations that make forgery thermodynamically absurd.</div>
+    </div>
+    
+    <!-- DeepGlass Genomics -->
+    <div style="padding: 24px 0; border-bottom: 1px solid var(--glass-border); text-align: left;">
+      <div style="font-family: 'Cormorant Garamond', serif; font-size: 22px; color: var(--accent-gold); margin-bottom: 8px;">DeepGlass Genomics Corporation</div>
+      <div style="font-size: 14px; color: var(--text-secondary); line-height: 1.6;">The operating company. The identity layer for the post-quantum economy. Where attestation meets biology.</div>
+    </div>
+    
+    <!-- Wye Trust Foundation -->
+    <div style="padding: 24px 0; text-align: left;">
+      <div style="font-family: 'Cormorant Garamond', serif; font-size: 22px; color: var(--text-primary); margin-bottom: 8px;">Wye Trust Foundation</div>
+      <div style="font-size: 14px; color: var(--text-secondary); line-height: 1.6;">The legacy. The governance. The constellation that outlives any one of us. Channel. Current. Confluence.</div>
+    </div>
+  </div>
+  
+  <div style="margin-top: 40px; padding: 20px; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 12px; text-align: center;">
+    <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 0;">Frisco, Texas</p>
+  </div>
+  
+  <!-- Anchor Logo -->
+  <div style="margin-top: 40px;">
+    <svg width="100" height="100" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="anchorGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#2dd4bf"/>
+          <stop offset="50%" style="stop-color:#3b82f6"/>
+          <stop offset="100%" style="stop-color:#d4a574"/>
+        </linearGradient>
+      </defs>
+      <!-- Anchor ring (top) -->
+      <circle cx="60" cy="25" r="12" fill="none" stroke="url(#anchorGrad)" stroke-width="3"/>
+      <!-- Anchor shank with helix suggestion -->
+      <path d="M60 37 L60 85" stroke="url(#anchorGrad)" stroke-width="3" fill="none"/>
+      <!-- Helix curves on shank -->
+      <path d="M54 45 Q60 52 66 45 Q60 58 54 65 Q60 72 66 65" stroke="rgba(45, 212, 191, 0.4)" stroke-width="2" fill="none"/>
+      <path d="M66 45 Q60 52 54 45 Q60 58 66 65 Q60 72 54 65" stroke="rgba(212, 165, 116, 0.4)" stroke-width="2" fill="none"/>
+      <!-- Anchor arms -->
+      <path d="M60 85 Q60 95 45 100 Q40 102 38 98" stroke="url(#anchorGrad)" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M60 85 Q60 95 75 100 Q80 102 82 98" stroke="url(#anchorGrad)" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <!-- Constellation nodes -->
+      <circle cx="60" cy="25" r="4" fill="#d4a574"/>
+      <circle cx="38" cy="98" r="3" fill="#2dd4bf"/>
+      <circle cx="82" cy="98" r="3" fill="#2dd4bf"/>
+    </svg>
+  </div>
+  
+  <p style="margin-top: 24px; font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 16px; color: var(--text-secondary);">
+    The identity layer for the quantum economy.
+  </p>
+  
+  <p style="margin-top: 8px; font-size: 13px; color: var(--text-muted);">
+    Not defending against the future. Building its foundation.
+  </p>
+  
+  <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--glass-border);">
+    <p style="font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 20px; color: var(--accent-teal);">
+      "I am me"
+    </p>
+    <p style="font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 20px; color: var(--accent-gold);">
+      "And it agrees"
+    </p>
+  </div>
+  
+  <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 32px; width: 100%; max-width: 280px;">
+    <button onclick="reset()" style="padding: 14px 20px; background: rgba(45, 212, 191, 0.1); border: 1px solid var(--accent-teal); border-radius: 12px; color: var(--accent-teal); font-family: 'Libre Franklin', sans-serif; font-size: 14px; cursor: pointer;">
+      ↺ Begin Fluidity
+    </button>
+    <button onclick="goTo(1)" style="padding: 14px 20px; background: transparent; border: 1px solid var(--glass-border); border-radius: 12px; color: var(--text-secondary); font-family: 'Libre Franklin', sans-serif; font-size: 14px; cursor: pointer;">
+      ↻ Return to Victor Demo
+    </button>
+  </div>
+</div>
+
+</div><!-- end demoPart -->
+
+<script>
+  // ═══════════════════════════════════════════════════════════
+  // ESSAY NAVIGATION
+  // ═══════════════════════════════════════════════════════════
+  const essaySections = ['prelude', 'section-1', 'section-2', 'section-3', 'section-4', 'section-5', 'section-6', 'section-7', 'section-8', 'coda'];
+  let currentEssaySection = 0;
+  
+  function showEssaySection(index) {
+    essaySections.forEach((id, i) => {
+      const section = document.getElementById(id);
+      if (section) {
+        if (i === index) {
+          section.classList.add('active');
+        } else {
+          section.classList.remove('active');
+        }
+      }
+    });
+    
+    document.getElementById('prevBtn').disabled = (index === 0);
+    document.getElementById('nextBtn').style.display = (index === essaySections.length - 1) ? 'none' : 'block';
+    
+    currentEssaySection = index;
+    window.scrollTo(0, 0);
+  }
+  
+  function nextSection() {
+    if (currentEssaySection < essaySections.length - 1) {
+      showEssaySection(currentEssaySection + 1);
+      if (navigator.vibrate) navigator.vibrate(20);
+    }
+  }
+  
+  function prevSection() {
+    if (currentEssaySection > 0) {
+      showEssaySection(currentEssaySection - 1);
+      if (navigator.vibrate) navigator.vibrate(20);
+    }
+  }
+  
+  // Initialize essay on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    showEssaySection(0);
+  });
+
+  // ═══════════════════════════════════════════════════════════
+  // TRANSITION FROM ESSAY TO DEMO
+  // ═══════════════════════════════════════════════════════════
+  function startDemo() {
+    document.getElementById('essayPart').classList.add('hidden');
+    document.getElementById('essayNav').style.display = 'none';
+    document.getElementById('demoPart').classList.add('active');
+    document.getElementById('screen1').classList.add('active');
+    window.scrollTo(0, 0);
+    if (navigator.vibrate) navigator.vibrate([50, 100, 50]);
+    updateProgress();
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // DEMO NAVIGATION (all 29 screens)
+  // ═══════════════════════════════════════════════════════════
+  let currentScreen = 1;
+  const totalScreens = 23;
+  let countdownInterval;
+  let completedScenes = new Set();
+
+  function updateProgress() {
+    const progress = (currentScreen / totalScreens) * 100;
+    document.getElementById('progressBar').style.width = progress + '%';
+  }
+
+  function goTo(screen) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen' + screen).classList.add('active');
+    currentScreen = screen;
+    updateProgress();
+    
+    if (navigator.vibrate) navigator.vibrate(20);
+    
+    // Trigger animations for specific screens
+    if (screen === 7) setTimeout(animateTriangulation, 500);
+    if (screen === 10) setTimeout(() => {
+      const curve = document.getElementById('moatCurve');
+      if (curve) curve.classList.add('animated');
+    }, 300);
+    if (screen === 16) setTimeout(animateConstellation, 500);
+  }
+
+  // First lie logic
+  const fakeNameInput = document.getElementById('fakeName');
+  const lieBtn = document.getElementById('lieBtn');
+  
+  if (fakeNameInput) {
+    fakeNameInput.addEventListener('input', () => {
+      lieBtn.disabled = fakeNameInput.value.trim().length < 2;
+    });
+  }
+
+  function acceptLie() {
+    const name = fakeNameInput.value.trim();
+    document.getElementById('displayName').textContent = name;
+    goTo(3);
+  }
+
+  // Triangulation animation
+  function animateTriangulation() {
+    const nodes = document.querySelectorAll('.tri-node');
+    const center = document.querySelector('.tri-center');
+    
+    nodes.forEach((node, i) => {
+      setTimeout(() => {
+        node.classList.add('active');
+        if (navigator.vibrate) navigator.vibrate(30);
+      }, i * 400);
+    });
+    
+    setTimeout(() => {
+      if (center) center.classList.add('active');
+      if (navigator.vibrate) navigator.vibrate([50, 50, 100]);
+    }, nodes.length * 400 + 300);
+  }
+
+  // QR demo
+  let qrCode = null;
+  let entropyInterval;
+  
+  function selectScenario(type) {
+    if (navigator.vibrate) navigator.vibrate(20);
+    goTo(15);
+    startQRDemo();
+  }
+
+  function generateNonce() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let nonce = '';
+    for (let i = 0; i < 4; i++) {
+      nonce += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return nonce;
+  }
+
+  function generateQRData(nonce, timestamp) {
+    const payload = { t: timestamp, n: nonce, s: 'DG-' + Math.random().toString(36).substr(2, 8).toUpperCase(), v: '1.0' };
+    return JSON.stringify(payload);
+  }
+
+  function updateQRCode() {
+    const qrContainer = document.getElementById('qrLive');
+    if (!qrContainer) return;
+    
+    const nonce = generateNonce();
+    const now = new Date();
+    const timestamp = now.toISOString();
+    const timeDisplay = now.toLocaleTimeString('en-US', { hour12: false });
+    
+    document.getElementById('sessionNonce').textContent = nonce;
+    document.getElementById('qrTimestamp').textContent = timeDisplay;
+    
+    qrContainer.innerHTML = '';
+    
+    const qrData = generateQRData(nonce, timestamp);
+    qrCode = new QRCode(qrContainer, {
+      text: qrData, width: 144, height: 144,
+      colorDark: '#0a0a0f', colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  }
+
+  function startQRDemo() {
+    updateQRCode();
+    
+    const entropyBar = document.getElementById('entropyBar');
+    if (entropyBar) {
+      entropyBar.innerHTML = '';
+      for (let i = 0; i < 20; i++) {
+        const seg = document.createElement('div');
+        seg.className = 'entropy-segment';
+        entropyBar.appendChild(seg);
+      }
+    }
+    
+    let seconds = 30;
+    const countdownEl = document.getElementById('countdown');
+    const ring = document.getElementById('ringProgress');
+    const circumference = 2 * Math.PI * 105;
+    if (ring) {
+      ring.style.strokeDasharray = circumference;
+      ring.style.strokeDashoffset = circumference;
+    }
+    
+    clearInterval(countdownInterval);
+    clearInterval(entropyInterval);
+    
+    countdownInterval = setInterval(() => {
+      seconds--;
+      if (countdownEl) countdownEl.textContent = seconds;
+      
+      if (ring) {
+        const progress = (30 - seconds) / 30;
+        ring.style.strokeDashoffset = circumference * (1 - progress);
+      }
+      
+      const segments = document.querySelectorAll('.entropy-segment');
+      const activeCount = Math.floor((30 - seconds) / 1.5);
+      segments.forEach((seg, i) => seg.classList.toggle('active', i < activeCount));
+      
+      if (seconds <= 0) {
+        clearInterval(countdownInterval);
+        seconds = 30;
+        updateQRCode();
+        startQRDemo();
+      }
+    }, 1000);
+    
+    setTimeout(() => {
+      const msg = document.getElementById('witnessMessage');
+      if (msg) msg.classList.add('visible');
+    }, 2000);
+  }
+
+  function simulateScan() {
+    clearInterval(countdownInterval);
+    clearInterval(entropyInterval);
+    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+    goTo(16);
+    setTimeout(animateConstellation, 500);
+  }
+
+  // Day in the Life scene management
+  function showDayScene(scene) {
+    if (navigator.vibrate) navigator.vibrate(20);
+    const sceneMap = { 'vote': '20a', 'tsa': '20b', 'hertz': '20c', 'roberts': '20d', 'dinner': '20e', 'hotel': '20f' };
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen' + sceneMap[scene]).classList.add('active');
+  }
+
+  function completeDayScene(scene) {
+    if (navigator.vibrate) navigator.vibrate(30);
+    completedScenes.add(scene);
+    
+    const status = document.getElementById('status-' + scene);
+    if (status) {
+      status.textContent = '✓ Complete';
+      status.style.color = '#2dd4bf';
+    }
+    
+    document.getElementById('completedCount').textContent = completedScenes.size;
+    
+    if (completedScenes.size >= 6) {
+      const btn = document.getElementById('dayComplete');
+      if (btn) { btn.style.opacity = '1'; btn.style.pointerEvents = 'auto'; }
+    }
+    
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen20').classList.add('active');
+  }
+
+  // Constellation animation
+  function animateConstellation() {
+    const nodes = document.querySelectorAll('.constellation .node:not(.center)');
+    const connections = document.querySelectorAll('.constellation .connection');
+    const btn = document.getElementById('constellationNext');
+    const validatingText = document.getElementById('validatingText');
+    
+    if (validatingText) {
+      setTimeout(() => validatingText.classList.add('visible'), 300);
+    }
+    
+    nodes.forEach((node, i) => {
+      setTimeout(() => {
+        node.classList.add('active');
+        if (navigator.vibrate) navigator.vibrate(30);
+        if (connections[i]) connections[i].classList.add('active');
+      }, i * 600);
+    });
+    
+    const messages = [
+      "Triangulating across generations...", "Validating maternal lineage...",
+      "Confirming paternal markers...", "Cross-referencing family network...",
+      "Building constellation...", "Agreement forming..."
+    ];
+    
+    messages.forEach((msg, i) => {
+      setTimeout(() => { if (validatingText) validatingText.textContent = msg; }, i * 600 + 300);
+    });
+    
+    setTimeout(() => {
+      if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+      if (validatingText) {
+        validatingText.textContent = "Constellation complete. Agreement reached.";
+        validatingText.style.color = '#d4a574';
+      }
+      if (navigator.vibrate) navigator.vibrate([50, 100, 50, 100, 200]);
+    }, nodes.length * 600 + 800);
+  }
+
+  function shareDemo() {
+    const shareData = {
+      title: 'Fluidity — A DeepGlass Experience',
+      text: 'Identity anchored in biology. "I am me and it agrees."',
+      url: window.location.href
+    };
+    
+    if (navigator.share) {
+      navigator.share(shareData).catch(console.error);
+    } else {
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        alert('Link copied to clipboard!');
+      }).catch(() => {
+        alert('Share: ' + window.location.href);
+      });
+    }
+  }
+
+  function reset() {
+    // Reset demo
+    currentScreen = 1;
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    if (fakeNameInput) fakeNameInput.value = '';
+    if (lieBtn) lieBtn.disabled = true;
+    document.querySelectorAll('.constellation .node:not(.center)').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('.constellation .connection').forEach(c => c.classList.remove('active'));
+    const constBtn = document.getElementById('constellationNext');
+    if (constBtn) constBtn.disabled = true;
+    const witnessMsg = document.getElementById('witnessMessage');
+    if (witnessMsg) witnessMsg.classList.remove('visible');
+    const validText = document.getElementById('validatingText');
+    if (validText) { validText.classList.remove('visible'); validText.style.color = ''; }
+    document.querySelectorAll('.tri-node').forEach(n => n.classList.remove('active'));
+    const triCenter = document.querySelector('.tri-center');
+    if (triCenter) triCenter.classList.remove('active');
+    const moatCurve = document.getElementById('moatCurve');
+    if (moatCurve) moatCurve.classList.remove('animated');
+    clearInterval(countdownInterval);
+    clearInterval(entropyInterval);
+    const qrLive = document.getElementById('qrLive');
+    if (qrLive) qrLive.innerHTML = '';
+    
+    // Reset day scenes
+    completedScenes.clear();
+    const countEl = document.getElementById('completedCount');
+    if (countEl) countEl.textContent = '0';
+    ['vote', 'tsa', 'hertz', 'roberts', 'dinner', 'hotel'].forEach(scene => {
+      const el = document.getElementById('status-' + scene);
+      if (el) { el.textContent = 'Tap for story'; el.style.color = ''; }
+    });
+    const dayBtn = document.getElementById('dayComplete');
+    if (dayBtn) { dayBtn.style.opacity = '0.3'; dayBtn.style.pointerEvents = 'none'; }
+    
+    // Show essay, hide demo
+    document.getElementById('demoPart').classList.remove('active');
+    document.getElementById('essayPart').classList.remove('hidden');
+    document.getElementById('essayNav').style.display = 'flex';
+    
+    showEssaySection(0);
+    updateProgress();
+  }
+
+  function returnToEssay() {
+    document.getElementById('demoPart').classList.remove('active');
+    document.getElementById('essayPart').classList.remove('hidden');
+    document.getElementById('essayNav').style.display = 'flex';
+    showEssaySection(essaySections.length - 1);
+  }
+</script>
+
+</body>
+</html>
